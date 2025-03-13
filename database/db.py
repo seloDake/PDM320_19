@@ -4,8 +4,8 @@ import psycopg2
 host = "127.0.0.1"         # The host of the database
 port = "5432"              # The port (default: 5432)
 dbname = "p32001_19"    # The database name
-user = ""     # Your PostgreSQL username
-password = "" # Your PostgreSQL password
+user = "knn4602"     # Your PostgreSQL username
+password = "Kainakaren112$" # Your PostgreSQL password
 
 # Establish a connection to the PostgreSQL database
 try:
