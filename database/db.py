@@ -1,34 +1,33 @@
 import psycopg2
+from sshtunnel import SSHTunnelForwarder
 
-# Replace these values with your actual database connection details
-host = "127.0.0.1"         # The host of the database
-port = "5432"              # The port (default: 5432)
-dbname = ""    # The database name
-user = ""     # Your PostgreSQL username
-password = "Kainakaren1$" # Your PostgreSQL password
+username = "osj7577"
+password = "histet-Jubrih-5zygda"
+dbName = "p32001_19"
 
-# Establish a connection to the PostgreSQL database
+
 try:
-    connection = psycopg2.connect(
-        host=host,
-        port=port,
-        dbname=dbname,
-        user=user,
-        password=password
-    )
+    with SSHTunnelForwarder(('starbug.cs.rit.edu', 22),
+                            ssh_username=username,
+                            ssh_password=password,
+                            remote_bind_address=('127.0.0.1', 5432)) as server:
+        server.start()
+        print("SSH tunnel established")
+        params = {
+            'database': dbName,
+            'user': username,
+            'password': password,
+            'host': 'localhost',
+            'port': server.local_bind_port
+        }
 
-    # Create a cursor object to interact with the database
-    cursor = connection.cursor()
-    print("Connection successful!")
 
-    # Test the connection by running a query
-    cursor.execute("SELECT version();")
-    db_version = cursor.fetchone()
-    print("PostgreSQL database version:", db_version)
+        conn = psycopg2.connect(**params)
+        curs = conn.cursor()
+        print("Database connection established")
 
-    # Don't forget to close the connection
-    cursor.close()
-    connection.close()
+        #DB work here....
 
-except Exception as error:
-    print(f"Error: {error}")
+        conn.close()
+except:
+    print("Connection failed")
