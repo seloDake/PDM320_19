@@ -1,4 +1,4 @@
-from database.db import get_db
+from models.db import get_db
 
 try:
     conn = get_db()
