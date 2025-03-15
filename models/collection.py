@@ -21,6 +21,8 @@ def printCollectionsMenu():
 
         if userinput == "1":
             create_collection(user_id)
+        elif userinput == "3":
+            delete_collection(user_id)
         elif userinput == "7":
             print("Returning to the main menu...")
             break  # Exits the loop and returns to main.py
@@ -30,26 +32,23 @@ def printCollectionsMenu():
 
 # Function to create a collection
 def create_collection(username):
-    conn = get_db_connection()  # Ensure fresh connection is retrieved
+    conn = get_db_connection()
     if conn is None:
         print("Failed to connect to the database.")
         return
 
     try:
         with conn.cursor() as cursor:
-            # Get the maximum collectionID
             cursor.execute('SELECT MAX("collectionid") FROM "collections"')
-            max_id = cursor.fetchone()[0] or 0  # Handle None case
+            max_id = cursor.fetchone()[0] or 0
 
             # Increment the max id by 1
             new_collection_id = max_id + 1
 
-            # Prompt user for collection name
             collectionname = input("Enter a name for your collection: ").strip()
             if not collectionname:
                 collectionname = "Collection"
 
-            # Insert new collection into the database
             cursor.execute(
                 'INSERT INTO "collections" ("collectionid", "username", "collectionname") VALUES (%s, %s, %s)',
                 (new_collection_id, username, collectionname)
@@ -61,13 +60,58 @@ def create_collection(username):
         print(f"Operational error: {e}. Trying to reconnect...")
         conn = reconnect_db()
         if conn:
-            create_collection(username)  # Retry the operation
+            create_collection(username)
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
         conn.rollback()
     finally:
         if conn:
-            conn.close()  # Ensure connection is closed properly after the operation
+            conn.close()
+
+def delete_collection(user_id):
+    conn = get_db_connection()
+    if conn is None:
+        print("Failed to connect to the database.")
+        return
+
+    try:
+        # Step 1: Ask the user to enter the collection name they want to delete
+        collection_name = input("Enter the name of the collection you would like to delete: ").strip()
+
+        # Step 2: Find the collection ID corresponding to the collection name and user ID
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "userid" = %s',
+                (collection_name, user_id)
+            )
+            result = cursor.fetchone()
+
+            if result is None:
+                print(f"No collection found with the name '{collection_name}'.")
+                return
+
+            collection_id = result[0]
+            cursor.execute(
+                'DELETE FROM "collections" WHERE "collectionid" = %s',
+                (collection_id,)
+            )
+            conn.commit()
+
+            cursor.execute(
+                'DELETE FROM "contains" WHERE "collectionid" = %s',
+                (collection_id,)
+            )
+            conn.commit()
+
+            print(f"Collection '{collection_name}' and its associated movies have been deleted successfully.")
+
+    except psycopg2.DatabaseError as e:
+        print(f"Database error: {e}")
+        conn.rollback()
+    finally:
+        if conn:
+            conn.close()
+
 
 # Function to reconnect to the database
 def reconnect_db():
