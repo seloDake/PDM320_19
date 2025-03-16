@@ -1,5 +1,5 @@
 # date: 3/15/25-3/16/25
-# author: Liv Jaszczak
+# author: LIV JASZCZAK
 
 # defining important constants and data structures
 # number of rows in a primary table - our project requirements said 1000s to 10000s so we'd have enough for data analysis
