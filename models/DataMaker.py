@@ -15,6 +15,10 @@ TRY_DELAY = 2
 # no other user fields need to be unique
 usernames = set()
 
+# a set containing the emails since they need to be unique
+# no other user fields need to be unique
+emails = set()
+
 # importing libraries
 from faker import Faker  # This library that generates fake data
 import time # so we can delay reconnect attempts
@@ -27,30 +31,45 @@ fake = Faker()
 
 
 # makes one random password that meets our database's criteria:
-# length of at least 8
+# length of at least 8 (in this case 10)
 # >= 1 lower case letter
-# at least 1 special char
+# at least 1 special char.
+#   our list of special characters is more restrictive so I'm adding one of our accepted special characters to every
+#   password
 # at least 1 digit
 # @ least 1 upper case letter
 def generate_password():
-    password = fake.password(length=8, special_chars=True, digits=True, upper_case=True, lower_case=True)
-    return password
+    password = fake.password(length=7, special_chars=True, digits=True, upper_case=True, lower_case=True)
+    password_new = password + "$"
+    return password_new
 
-# makes usernames, verifying they are unique first
+# makes usernames, verifying they are unique and at least 4 characters long first
 def generate_username():
     while True:
         username = fake.user_name()
         length = len(usernames)
-        usernames.add(username)
-        new_length = len(usernames)
+        if len(username) >= 4:
+            usernames.add(username)
+            new_length = len(usernames)
+            if(new_length > length):
+                return username
+        else:
+            continue
+
+def generate_email():
+    while True:
+        email = fake.email()
+        length = len(emails)
+        emails.add(email)
+        new_length = len(emails)
         if(new_length > length):
-            return username
+            return email
 
 
 # Generates random data for the USERS table
 def make_users_data():
     username = generate_username()
-    email = fake.email()
+    email = generate_email()
     first_name = fake.first_name()
     last_name = fake.last_name()
     password = generate_password()
@@ -96,7 +115,7 @@ def insert_users_data(users_data, MAX_RETRIES):
                 extras.execute_values(cursor, insert_query, users_data)
 
                 connection.commit()
-                print(f"success message")
+                print(f"Data Committed")
                 return  # Exit on success
 
         # in the case of a failure to connect...
@@ -104,8 +123,8 @@ def insert_users_data(users_data, MAX_RETRIES):
             # print a message so the user can see what's going wrong and how many attempts are left
             print(f"Operational error: {e}. Retrying ({attempts + 1}/{MAX_RETRIES})...")
             if connection:
-                connection.close()  # Close the failed connection
-            time.sleep(TRY_DELAY)  # Wait before retrying to give a chance for things to fix themselves
+                connection.close()
+            time.sleep(TRY_DELAY)
             attempts += 1
 
         # announce any database errors and rollback any database edits to prevent half-way changes
@@ -126,3 +145,6 @@ def main():
 
     make_users_rows(primary_row_count, users_data)
     insert_users_data(users_data, MAX_RETRIES)
+    print("Hi there.")
+
+main()
