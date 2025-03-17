@@ -68,7 +68,6 @@ from faker import Faker  # This library that generates fake data
 import time # so we can delay reconnect attempts
 import psycopg2  # for connecting python and postgre
 import random
-from psycopg2 import extras
 from db import get_db_connection  # Ensure db.py is in the same directory/folder
 
 # create a faker object and access Faker methods
@@ -81,9 +80,6 @@ def generate_platform_name():
     prefix = random.choice(prefix_lst)
     suffix = random.choice(suffix_lst)
     return prefix + " " + suffix
-
-
-
 
 # to make an attempt to reconnect the database
 # originally written by KIFEKACHUKWU NWOSU in collection.py
