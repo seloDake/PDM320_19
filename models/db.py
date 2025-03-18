@@ -42,7 +42,7 @@ def establish_db_connection():
 # Function to retrieve the database connection (handles reconnect if needed)
 def get_db_connection():
     global conn, server
-    if conn is None or conn.closed:
+    if conn is None or conn.closed != 0:
         print("Connection not established or closed. Attempting to reconnect...")
         establish_db_connection()
     return conn

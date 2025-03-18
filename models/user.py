@@ -25,15 +25,16 @@ class User:
     @classmethod
     def login(cls):
         """Logs in a user, stores the userID, and updates the last accessed timestamp."""
-        conn = get_db_connection()
-        if conn is None:
-            print("Failed to connect to the database.")
-            return
+        if cls.conn is None or cls.conn.closed != 0:
+            print("Database connection lost. Reconnecting...")
+            cls.conn = get_db_connection()
+            if cls.conn is None:
+                print("Could not establish a database connection.")
+                return
         print("\nWelcome to login. Please enter credentials below:")
         username = input("Enter username: ").strip()
         password = input("Enter password: ").strip()
 
-        conn = get_db_connection()
         with cls.conn.cursor() as cursor:
             cursor.execute('SELECT "username" FROM "users" WHERE username = %s AND password = %s', (username, password))
             result = cursor.fetchone()
