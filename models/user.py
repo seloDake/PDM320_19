@@ -33,6 +33,7 @@ class User:
         username = input("Enter username: ").strip()
         password = input("Enter password: ").strip()
 
+        conn = get_db_connection()
         with cls.conn.cursor() as cursor:
             cursor.execute('SELECT "username" FROM "users" WHERE username = %s AND password = %s', (username, password))
             result = cursor.fetchone()
