@@ -44,7 +44,7 @@ class User:
                 cls.login_checker = True
                 current_time = datetime.datetime.now()
 
-                cursor.execute('UPDATE "users" SET "lastAccess" = %s WHERE "userID" = %s', (current_time, cls.user_id))
+                cursor.execute('UPDATE "users" SET "lastAccess" = %s WHERE "username" = %s', (current_time, cls.user_id))
                 cls.conn.commit()
 
                 print("Login successful!")
@@ -65,7 +65,7 @@ class User:
     def increment_counter_user_id(cls):
         """Finds the next available user ID by getting the max userID and adding 1."""
         with cls.conn.cursor() as cursor:
-            cursor.execute('SELECT MAX("userID") FROM "users"')
+            cursor.execute('SELECT MAX("username") FROM "users"')
             result = cursor.fetchone()
             return (result[0] or 0) + 1
                 
@@ -102,8 +102,8 @@ class User:
             with cls.conn.cursor() as cursor:
                 increment_user_id = cls.increment_counter_user_id()
                 cursor.execute("""
-                    INSERT INTO users (userID, username, email, password, first_name, last_name, platform, created_at, last_login)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NULL)
+                    INSERT INTO users (username, email, password, first_name, last_name, platform, created_at, last_login)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, NULL)
                 """, (increment_user_id, username, email, password, first_name, last_name, platform, current_time))
                 cls.conn.commit()
                 print("Your account has been created! Please sign in to access other functionalities.")
@@ -200,11 +200,11 @@ class User:
             if choice == "1":
                 first_name = input("Enter the first name of the person you would like to follow: ").strip()
                 last_name = input("Enter the last name of the person you would like to follow: ").strip()
-                cursor.execute('SELECT "userID" FROM "users" WHERE first_name = %s AND last_name = %s', (first_name, last_name))
+                cursor.execute('SELECT "username" FROM "users" WHERE first_name = %s AND last_name = %s', (first_name, last_name))
                 result = cursor.fetchone()
             elif choice == "2":
                 email = input("Enter the email address of the user you would like to follow: ").strip()
-                cursor.execute('SELECT "userID" FROM "users" WHERE email = %s', (email,))
+                cursor.execute('SELECT "username" FROM "users" WHERE email = %s', (email,))
                 result = cursor.fetchone()
             else:
                 print(" Invalid option.")
@@ -232,11 +232,11 @@ class User:
             if choice == "1":
                 first_name = input("Enter the first name of the person you would like to unfollow: ").strip()
                 last_name = input("Enter the last name of the person you would like to unfollow: ").strip()
-                cursor.execute('SELECT "userID" FROM "users" WHERE first_name = %s AND last_name = %s', (first_name, last_name))
+                cursor.execute('SELECT "username" FROM "users" WHERE first_name = %s AND last_name = %s', (first_name, last_name))
                 result = cursor.fetchone()
             elif choice == "2":
                 email = input("Enter the email address of the user you would like to unfollow: ").strip()
-                cursor.execute('SELECT "userID" FROM "users" WHERE email = %s', (email,))
+                cursor.execute('SELECT "username" FROM "users" WHERE email = %s', (email,))
                 result = cursor.fetchone()
             else:
                 print("Invalid option.")
