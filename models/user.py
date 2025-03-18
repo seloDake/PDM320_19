@@ -40,12 +40,12 @@ class User:
             result = cursor.fetchone()
 
             if result:
-                cls.user_id = result[0]
-                cls.login_checker = True
-                current_time = datetime.datetime.now()
+                # cls.user_id = result[0]
+                # cls.login_checker = True
+                # current_time = datetime.datetime.now()
 
-                cursor.execute('UPDATE "users" SET "lastAccess" = %s WHERE "username" = %s', (current_time, cls.user_id))
-                cls.conn.commit()
+                # cursor.execute('UPDATE "users" SET "accessid" = %s WHERE "username" = %s', (current_time, cls.user_id))
+                # cls.conn.commit()
 
                 print("Login successful!")
                 cls.print_main_menu()
