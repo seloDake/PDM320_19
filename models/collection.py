@@ -12,8 +12,8 @@ def printCollectionsMenu():
         print("1: Create a collection")
         print("2: View a List of Your Collections")
         print("3: Delete a collection")
-        print("4: Add a movie to a collection")
-        print("5: Delete a movie from a collection")
+        print("4: Add a VideoGame to a collection")
+        print("5: Delete a VideoGame from a collection")
         print("6: Modify a collection name")
         print("7: Return to the main menu")
 
@@ -22,7 +22,7 @@ def printCollectionsMenu():
             printCollectionsMenu()
         elif userinput == "1":
             create_collection(user_id)
-        elif userinput == "3":
+        elif userinput == "2":
             view_collections(user_id)
         elif userinput == "3":
             delete_collection(user_id)
@@ -49,6 +49,10 @@ def view_collections(user_id):
         cursor = conn.cursor()
         cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (user_id,))
         collections = cursor.fetchall()
+        total= 0
+        for i in collections:
+            print(i)
+        print("totak in collections :", total)
         if not collections:
             print("No collections found.")
         else:
@@ -62,6 +66,16 @@ def view_collections(user_id):
             cursor.close()
         if conn:
             conn.close()
+
+
+# def print_games_in_collection(collection):
+#     conn = get_db_connection()
+#     if conn is None:
+#         print("Failed to connect to the database.")
+#         return
+#     try:
+#         cursor = conn.cursor()
+#         cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (collection,))
 
 
 # Function to create a collection
@@ -79,10 +93,13 @@ def create_collection(username):
             # Increment the max id by 1
             new_collection_id = max_id + 1
 
-            collectionname = input("Enter a name for your collection: ").strip()
-            if not collectionname:
-                collectionname = "Collection"
+            collectionname = input("Enter a name for your collection: ").strip()\
 
+            cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (user_id,))
+            collections = cursor.fetchall()
+            if collectionname in collections:
+                print("This collection already exists, please enter a new name")
+                collectionname = input("Enter a new name for your collection: ")
             cursor.execute(
                 'INSERT INTO "collections" ("collectionid", "username", "collectionname") VALUES (%s, %s, %s)',
                 (new_collection_id, username, collectionname)
@@ -115,7 +132,7 @@ def delete_collection(user_id):
         # Step 2: Find the collection ID corresponding to the collection name and user ID
         with conn.cursor() as cursor:
             cursor.execute(
-                'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "userid" = %s',
+                'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "username" = %s',
                 (collection_name, user_id)
             )
             result = cursor.fetchone()
@@ -131,11 +148,11 @@ def delete_collection(user_id):
             )
             conn.commit()
 
-            cursor.execute(
-                'DELETE FROM "contains" WHERE "collectionid" = %s',
-                (collection_id,)
-            )
-            conn.commit()
+            # cursor.execute(
+            #     'DELETE FROM "contains" WHERE "collectionname" = %s',
+            #     (collection_name,)
+            # )
+            # conn.commit()
 
             print(f"Collection '{collection_name}' and its associated movies have been deleted successfully.")
 
@@ -214,16 +231,16 @@ def modifyCollectionName(user_id):
         while not old_collection_name:
             print("The name you input was not valid.\nEnter the name of the collection you would like to change.")
             old_collection_name = input("Enter the name of the collection you would like to change:");
-            new_name = input("Enter the new collection name: ")
+        new_name = input("Enter the new collection name: ")
         with conn.cursor() as cursor:
-            cursor.execute("SELECT \"collectionid\" FROM \"collection\" WHERE \"collectionname\"=%s AND \"username\"=%s",
+            cursor.execute("SELECT \"collectionid\" FROM \"collections\" WHERE \"collectionname\"=%s AND \"username\"=%s",
                            (old_collection_name, user_id))
             result = cursor.fetchone()
             if result is None:
                 print(f"No collection found with the name '{old_collection_name}'.")
                 return
             coll_id = result[0]
-            cursor.execute("UPDATE \"collection\" SET \"collectionname\"=%s WHERE \"collectionid\"=%s",
+            cursor.execute("UPDATE \"collections\" SET \"collectionname\"=%s WHERE \"collectionid\"=%s",
                            (new_name, coll_id))
             conn.commit()
             print(f"Collection name updated successfully to '{new_name}'.")
