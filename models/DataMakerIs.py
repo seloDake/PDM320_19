@@ -21,25 +21,25 @@ min_game_id = 1
 max_game_id = 30000
 
 #min dev id
-min_dev_id = 1
+min_genre_id = 158
 
 #max dev id
-max_dev_id = 15000
+max_genre_id = 314
 
-# portion of games with 1 publisher
-portion_1 = .7
+# portion of games with 1 genre
+portion_1 = .1
 
-# portion of games with 2 publishers
-portion_2 = .15
+# portion of games with 2 genres
+portion_2 = .3
 
-# portion of games with 3 publishers
-portion_3 = .08
+# portion of games with 3 genres
+portion_3 = .35
 
-# portion of games with 4 publishers
-portion_4 = .05
+# portion of games with 4 genres
+portion_4 = .15
 
-# portion of games with 5 publishers
-portion_5 = .02
+# portion of games with 5 genres
+portion_5 = .1
 
 # importing libraries
 import time # so we can delay reconnect attempts
@@ -62,19 +62,19 @@ def make_data():
         game_id = random.randrange(1, max_game_id + 1)
         category = random.random()
         if category < portion_1:
-            publisher_amount = 1
+            amount = 1
         elif category < portion_2 + portion_1:
-            publisher_amount = 2
+            amount = 2
         elif category < portion_3 + portion_2 + portion_1:
-            publisher_amount = 3
+            amount = 3
         elif category < portion_4 + portion_3 + portion_2 + portion_1:
-            publisher_amount = 4
+            amount = 4
         else:
-            publisher_amount = 5
-        print(publisher_amount)
-        for i in range(publisher_amount):
-            dev_id = random.randrange(min_dev_id, max_dev_id+1, 2)#let's say publishers have odd ids
-            data.add((dev_id, game_id))
+            amount = 5
+        print(amount)
+        for i in range(amount):
+            genre_id = random.randrange(min_genre_id, max_genre_id+1)
+            data.add((genre_id, game_id))
     return list(data)
 
 # Function to insert the created user data onto the server
@@ -91,7 +91,7 @@ def insert_data(data, MAX_RETRIES):
         try:
             with connection.cursor() as cursor:
                 insert_query = """
-                INSERT INTO PUBLISHED_BY (makerid, videogameid) VALUES (%s, %s) """
+                INSERT INTO GAME_IS_GENRE (genreid, videogameid) VALUES (%s, %s) """
                 # Individually insert each item in the list of genre names
                 for item in data:
                     item_list = (item)
