@@ -2,7 +2,7 @@ import psycopg2
 from db import get_db_connection  # Ensure db.py is in the same directory
 # AUTHOR : KIFEKACHUKWU NWOSU
 conn = get_db_connection()
-user_id = 3  # Example user ID THAT WILL NOT QORK
+user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
 def printCollectionsMenu():
     while True:
@@ -22,6 +22,8 @@ def printCollectionsMenu():
             printCollectionsMenu()
         elif userinput == "1":
             create_collection(user_id)
+        elif userinput == "3":
+            view_collections(user_id)
         elif userinput == "3":
             delete_collection(user_id)
         elif userinput == "4":
