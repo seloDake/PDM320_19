@@ -1,6 +1,5 @@
 import datetime
-import psycopg2
-import random
+
 from db import get_db_connection # Ensure db.py is in the same directory
 # AUTHOR : Christabel Osei
 # Author : Kiffy Nwosu
@@ -36,41 +35,34 @@ def videogame_search_menu():
     print("5: Price")
     print("6: Developers")
 
-    @classmethod
-    def search_video_game(cls):
-        """Searches for video games based on user criteria."""
-        print("\nSearch for Video Games")
-        search_term = input("Enter game name, platform, release date (YYYY-MM-DD), developer, price, or genre: ").strip()
-        sort_by = input("Sort by (name, price, genre, release_year, developer) [asc/desc]: ").strip()
-        order = "ASC" if "asc" in sort_by.lower() else "DESC"
-        sort_column = "name"  # Default sorting by name
+    def search_video_games_by_name(connection):
+        name =input("Please enter the name of the Video Game you would like to search for").strip()
+        print(f"Searching for {name} by name, sorted alphabetically by name and release date")
 
-        if "price" in sort_by.lower():
-            sort_column = "price"
-        elif "genre" in sort_by.lower():
-            sort_column = "genre"
-        elif "release_year" in sort_by.lower():
-            sort_column = "release_date"
-        elif "developer" in sort_by.lower():
-            sort_column = "developer"
+        query = """
+            SELECT name,
+                   platform,
+                   releasedate,
+                   developer,
+                   publisher,
+                   play_time,
+                   esrb_rating,
+                   genre,
+                   price
+            FROM videogames
+            WHERE name ILIKE %s
+            ORDER BY name ASC, releasedate ASC
+        """
 
-        with cls.conn.cursor() as cursor:
-            cursor.execute(f"""
-                SELECT name, platform, release_date, developer, publisher, play_time, age_rating, user_rating, genre
-                FROM video_games
-                WHERE LOWER(name) LIKE %s OR LOWER(platform) LIKE %s OR release_date::TEXT LIKE %s 
-                      OR LOWER(developer) LIKE %s OR CAST(price AS TEXT) LIKE %s OR LOWER(genre) LIKE %s
-                ORDER BY {sort_column} {order}
-            """, (f"%{search_term.lower()}%", f"%{search_term.lower()}%", f"%{search_term}%',"
-                  f"%{search_term.lower()}%", f"%{search_term}%", f"%{search_term.lower()}%"))
-            results = cursor.fetchall()
-            if not results:
-                print("⚠️ No games found matching your search.")
-                return
-            print("\nSearch Results:")
-            for game in results:
-                print(f"{game[0]} | {game[1]} | {game[2]} | {game[3]} | {game[4]} | {game[5]} min | Age: {game[6]} | User Rating: {game[7]} | Genre: {game[8]}")
+        with connection.cursor() as cursor:
+            cursor.execute(query, (f"%{name}%",))
+            result_set = cursor.fetchall()
 
+        print_result(result_set)
+
+    def print_result(result_set):
+        for row in result_set:
+            print(row)
 
     @classmethod
     def rate_video_game(cls):
