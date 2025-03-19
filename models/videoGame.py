@@ -35,7 +35,11 @@ def videogame_search_menu():
     print("5: Price")
     print("6: Developers")
 
-    def search_video_games_by_name(connection):
+    def search_video_games_by_name():
+        if conn is None:
+            print("Failed to connect to the database.")
+            return
+
         name =input("Please enter the name of the Video Game you would like to search for").strip()
         print(f"Searching for {name} by name, sorted alphabetically by name and release date")
 
