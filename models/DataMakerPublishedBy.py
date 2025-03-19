@@ -26,8 +26,20 @@ min_dev_id = 1
 #max dev id
 max_dev_id = 15000
 
-#dev amount ranges. There are 5 categories of dev amounts
-dev_count_ranges = [[1,3], [2, 10], [10,30], [30,50], [50,100]]
+# portion of games with 1 publisher
+portion_1 = .7
+
+# portion of games with 2 publishers
+portion_2 = .15
+
+# portion of games with 3 publishers
+portion_3 = .8
+
+# portion of games with 4 publishers
+portion_4 = .5
+
+# portion of games with 5 publishers
+portion_5 = .2
 
 # importing libraries
 import time # so we can delay reconnect attempts
@@ -48,13 +60,20 @@ def make_data():
     data = set() #we're using a set to prevent duplicate values
     while(len(data) < row_count):
         game_id = random.randrange(1, max_game_id + 1)
-        category = random.randrange(0, 5)
-        min_dev_amount = dev_count_ranges[category][0]
-        max_dev_amount = dev_count_ranges[category][1]+1
-        dev_amount = random.randrange(min_dev_amount, max_dev_amount)
-        print(dev_amount)
-        for i in range(dev_amount):
-            dev_id = random.randrange(min_dev_id+1, max_dev_id+1, 2)#let's say devs have even ids
+        category = random.random()
+        if category < portion_1:
+            publisher_amount = 1
+        elif category < portion_2:
+            publisher_amount = 2
+        elif category < portion_3:
+            publisher_amount = 3
+        elif category < portion_4:
+            publisher_amount = 4
+        else:
+            publisher_amount = 5
+        print(publisher_amount)
+        for i in range(publisher_amount):
+            dev_id = random.randrange(min_dev_id, max_dev_id+1, 2)#let's say publishers have odd ids
             data.add((dev_id, game_id))
     return list(data)
 
@@ -72,7 +91,7 @@ def insert_data(data, MAX_RETRIES):
         try:
             with connection.cursor() as cursor:
                 insert_query = """
-                INSERT INTO DEVELOPED_BY (makerid, videogameid) VALUES (%s, %s) """
+                INSERT INTO PUBLISHED_BY (makerid, videogameid) VALUES (%s, %s) """
                 # Individually insert each item in the list of genre names
                 for item in data:
                     item_list = (item)
