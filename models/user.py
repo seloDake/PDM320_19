@@ -99,11 +99,11 @@ class User:
 
         try:
             with cls.conn.cursor() as cursor:
-                increment_user_id = cls.increment_counter_user_id()
+                # increment_user_id = cls.increment_counter_user_id()
                 cursor.execute("""
-                    INSERT INTO users (username, email, password, first_name, last_name, platform, created_at, last_login)
+                    INSERT INTO users (username, email, password, first_name, last_name,created_date)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, NULL)
-                """, (increment_user_id, username, email, password, first_name, last_name, platform, current_time))
+                """, (username, email, password, first_name, last_name,current_time))
                 cls.conn.commit()
                 print("Your account has been created! Please sign in to access other functionalities.")
         except psycopg2.Error as e:
