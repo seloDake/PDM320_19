@@ -72,19 +72,16 @@ class User:
     @classmethod
     def create_account(cls):
         """Creates a new user"""
-        cls.conn = get_db_connection()
-        print("Welcome to Account Creation. Please enter your crendentials below")
-        print("Please enter first name:")
-        
+        cls.conn = get_db_connection()  # Ensure the database connection is active
+        print("Welcome to Account Creation. Please enter your credentials below.")
 
         first_name = input("Please enter first name: ").strip()
         last_name = input("Please enter last name: ").strip()
         email = input("Please enter your email: ").strip()
-        platform = input("Please enter the gaming platform you own: ").strip()
-
+        
         while True:
             username = input("Please enter a new username: ").strip()
-            if cls.is_username_taken(username) != -1:
+            if cls.is_username_taken(username):
                 print("Username already taken - please enter a different one.")
             else:
                 break
@@ -100,17 +97,16 @@ class User:
 
         try:
             with cls.conn.cursor() as cursor:
-                increment_user_id = cls.increment_counter_user_id()
                 cursor.execute("""
-                    INSERT INTO users (username, email, password, first_name, last_name, platform, created_at, last_login)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, NULL)
-                """, (increment_user_id, username, email, password, first_name, last_name, platform, current_time))
+                    INSERT INTO users (username, email, password, first_name, last_name, created_date)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (username, email, first_name, last_name, password, current_time))
+
                 cls.conn.commit()
                 print("Your account has been created! Please sign in to access other functionalities.")
         except psycopg2.Error as e:
             print(f"Database error: {e}")
             cls.conn.rollback()
-
 
 
     

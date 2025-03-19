@@ -29,6 +29,8 @@ def main():
             # add relevant methods here
         elif choice == '4':
             printCollectionsMenu()
+        elif choice == '5':
+            exit()
 
 
 
