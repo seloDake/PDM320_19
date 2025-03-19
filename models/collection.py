@@ -27,7 +27,7 @@ def printCollectionsMenu():
         elif userinput == "3":
             delete_collection(user_id)
         elif userinput == "4":
-            addMovietoCollection()
+            addVideoGametoCollection()
         elif userinput == "5":
             delete_movie_from_collection(user_id)
         elif userinput == "6":
@@ -163,7 +163,7 @@ def delete_collection(user_id):
         if conn:
             conn.close()
 
-def addMovietoCollection():
+def addVideoGametoCollection():
     conn = get_db_connection()
     if conn is None:
         print("Failed to connect to the database.")
@@ -171,11 +171,11 @@ def addMovietoCollection():
 
     try:
         cursor = conn.cursor()
-        collection_name = input("Enter the name of the collection you want to add a movie to: ").strip()
+        collection_name = input("Enter the name of the collection you want to add a VideoGame to: ").strip()
         while not collection_name:
             collection_name = input("The name you input was not valid. Enter the name of the collection: ").strip()
 
-        cursor.execute("SELECT collectionid FROM collections WHERE userid = %s AND collectionname = %s",
+        cursor.execute("SELECT collectionid FROM collections WHERE username = %s AND collectionname = %s",
                        (user_id, collection_name))
         collection = cursor.fetchone()
         if not collection:
@@ -183,31 +183,31 @@ def addMovietoCollection():
             return
         collection_id = collection[0]
 
-        movie_id = None
-        while movie_id is None:
-            movie_name = input("Enter the name of the movie you would like to add: ").strip()
-            while not movie_name:
-                movie_name = input("The movie you input was not valid. Enter the name of the movie: ").strip()
+        game_id = None
+        while game_id is None:
+            game_name = input("Enter the name of the VideoGame you would like to add: ").strip()
+            while not game_name:
+                game_name = input("The Video Game you input was not valid. Enter the name of the Video Game: ").strip()
 
-            cursor.execute("SELECT movieid, mpaa_rating FROM movie WHERE title = %s", (movie_name,))
-            movies = cursor.fetchall()
+            cursor.execute("SELECT videogameid, esrb_rating FROM videogame WHERE title = %s", (game_name,))
+            videogames = cursor.fetchall()
 
-            if len(movies) == 1:
-                movie_id = movies[0][0]
-            elif len(movies) > 1:
-                print("There are multiple movies with that title. Please select the correct one:")
-                for m_id, rating in movies:
-                    print(f"{m_id}: {movie_name}, Rating: {rating}")
+            if len(videogames) == 1:
+                game_id = videogames[0][0]
+            elif len(videogames) > 1:
+                print("There are multiple videogames with that title. Please select the correct one:")
+                for m_id, rating in videogames:
+                    print(f"{m_id}: {game_name}, Rating: {rating}")
                 try:
-                    movie_id = int(input("Enter the movie ID: ").strip())
+                    game_id = int(input("Enter the Videogame ID: ").strip())
                 except ValueError:
                     print("Invalid input. Please enter a numeric movie ID.")
-                    movie_id = None
+                    game_id = None
             else:
                 print("Movie not found in the database.")
                 continue
 
-        cursor.execute("INSERT INTO contains (collectionid, movieid) VALUES (%s, %s)", (collection_id, movie_id))
+        cursor.execute("INSERT INTO contains (collectionid, videogameid) VALUES (%s, %s)", (collection_id, game_id))
         conn.commit()
         print("Movie added successfully!")
 
