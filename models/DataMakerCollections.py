@@ -43,7 +43,7 @@ def insert_collections_data(follow_lst, MAX_RETRIES):
 
                 # inserting the items individually bc I could not get a bulk insert to work
                 for item in follow_lst:
-                    cursor.execute(insert_query, (item[0], item[1]))
+                    cursor.execute(insert_query, (item[0], item[1].strip()))
 
                 connection.commit()  # Commit once after all inserts
                 print(f"Data Committed")
