@@ -80,7 +80,7 @@ class User:
         first_name = input("Please enter first name: ").strip()
         
         while True:
-            last_name = input("Please enter last name: ")
+            last_name = input("Please enter last name: ").strip()
             if not re.match("^[A-Za-z]+$", last_name):
                 print("Error: Last name must contain only letters (no spaces, numbers, or special characters).")
             elif len(last_name) <= 1:
