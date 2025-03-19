@@ -1,4 +1,5 @@
 import datetime
+import re
 import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
@@ -77,7 +78,16 @@ class User:
         
 
         first_name = input("Please enter first name: ").strip()
-        last_name = input("Please enter last name: ").strip()
+        
+        while True:
+            last_name = input("Please enter last name: ").strip()
+            if not re.match("^[A-Za-z]+$", last_name):
+                print("Error: Last name must contain only letters (no spaces, numbers, or special characters).")
+            elif len(last_name) <= 1:
+                print("Error: Last name must be at least 2 characters long.")
+            else:
+                break
+        
         email = input("Please enter your email: ").strip()
        
 
