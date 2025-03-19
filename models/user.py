@@ -62,7 +62,7 @@ class User:
         
         
     @classmethod
-    def y(cls):
+    def increment_counter_user_id(cls):
         """Finds the next available user ID by getting the max userID and adding 1."""
         with cls.conn.cursor() as cursor:
             cursor.execute('SELECT MAX("username") FROM "users"')
