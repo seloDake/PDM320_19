@@ -41,11 +41,11 @@ class User:
             result = cursor.fetchone()
 
             if result:
-                # cls.user_id = result[0]
-                # cls.login_checker = True
-                # current_time = datetime.datetime.now()
+                cls.user_id = result[0]
+                cls.login_checker = True
+                current_time = datetime.datetime.now()
 
-                # cursor.execute('UPDATE "users" SET "accessid" = %s WHERE "username" = %s', (current_time, cls.user_id))
+                # cursor.execute('UPDATE "access_records" SET "accessid" = %s WHERE "username" = %s', (current_time, cls.user_id))
                 # cls.conn.commit()
 
                 print("Login successful!")
@@ -223,6 +223,8 @@ class User:
                 return
 
             follow_id = result[0]
+            print("Username:", follow_id)
+            print("Username:", cls.user_id)
             cursor.execute("INSERT INTO follow_unfollow (followerusername, followeeusername) VALUES (%s, %s)",
                            (cls.user_id, follow_id))
             cls.conn.commit()
@@ -255,7 +257,7 @@ class User:
                 return
 
             unfollow_id = result[0]
-            cursor.execute("DELETE FROM user_followers WHERE follower_id = %s AND following_id = %s",
+            cursor.execute("DELETE FROM follow_unfollow WHERE followerusername = %s AND followeeusername = %s",
                            (cls.user_id, unfollow_id))
             cls.conn.commit()
             print(" Successfully unfollowed the user!")
