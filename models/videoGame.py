@@ -1,5 +1,5 @@
 import datetime
-
+import psycopg2
 from db import get_db_connection # Ensure db.py is in the same directory
 # AUTHOR : Christabel Osei
 # Author : Kiffy Nwosu
@@ -34,39 +34,43 @@ def videogame_search_menu():
     print("4: Genre")
     print("5: Price")
     print("6: Developers")
-
-    def search_video_games_by_name():
-        if conn is None:
-            print("Failed to connect to the database.")
-            return
-
+def search_video_games_by_name():
+    if conn is None:
+        print("Failed to connect to the database.")
+        return
+    try:
         name =input("Please enter the name of the Video Game you would like to search for").strip()
         print(f"Searching for {name} by name, sorted alphabetically by name and release date")
 
         query = """
-            SELECT name,
-                   platform,
-                   releasedate,
-                   developer,
-                   publisher,
+            SELECT title,
+                   # platform,
+                   # releasedate,
+                   # developer,
+                   # publisher,
                    play_time,
                    esrb_rating,
-                   genre,
-                   price
-            FROM videogames
+                   # genre,
+                   # price
+            FROM videogame
             WHERE name ILIKE %s
             ORDER BY name ASC, releasedate ASC
         """
 
-        with connection.cursor() as cursor:
+        with conn.cursor() as cursor:
             cursor.execute(query, (f"%{name}%",))
             result_set = cursor.fetchall()
-
         print_result(result_set)
+    except psycopg2.DatabaseError as e:
+        print(f"Database error: {e}")
+        conn.rollback()
+    finally:
+        if conn:
+            conn.close()
 
-    def print_result(result_set):
-        for row in result_set:
-            print(row)
+def print_result(result_set):
+    for row in result_set:
+        print(row)
 
     @classmethod
     def rate_video_game(cls):
@@ -130,3 +134,5 @@ def reconnect_db():
     conn = get_db_connection()
     if conn:
         print("Reconnected to the database successfully.")
+
+search_video_games_by_name()
