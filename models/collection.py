@@ -1,8 +1,8 @@
 import psycopg2
 from db import get_db_connection  # Ensure db.py is in the same directory
 # AUTHOR : KIFEKACHUKWU NWOSU
-conn = get_db_connection()
-user_id = 3  # Example user ID THAT WILL NOT QORK
+# conn = get_db_connection()
+# user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
 def printCollectionsMenu():
     while True:
@@ -12,8 +12,8 @@ def printCollectionsMenu():
         print("1: Create a collection")
         print("2: View a List of Your Collections")
         print("3: Delete a collection")
-        print("4: Add a movie to a collection")
-        print("5: Delete a movie from a collection")
+        print("4: Add a VideoGame to a collection")
+        print("5: Delete a VideoGame from a collection")
         print("6: Modify a collection name")
         print("7: Return to the main menu")
 
@@ -22,12 +22,14 @@ def printCollectionsMenu():
             printCollectionsMenu()
         elif userinput == "1":
             create_collection(user_id)
+        elif userinput == "2":
+            view_collections(user_id)
         elif userinput == "3":
             delete_collection(user_id)
         elif userinput == "4":
-            addMovietoCollection()
+            addVideoGametoCollection()
         elif userinput == "5":
-            delete_movie_from_collection(user_id)
+            delete_vidoeGame_from_collection(user_id)
         elif userinput == "6":
             modifyCollectionName(user_id)
         elif userinput == "7":
@@ -45,14 +47,43 @@ def view_collections(user_id):
 
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (user_id,))
+
+        # Get all collections with game counts
+        cursor.execute("""
+            SELECT c.collectionid, c.collectionname, COUNT(co.videogameid) 
+            FROM collections c
+            LEFT JOIN contains co ON c.collectionid = co.collectionid
+            WHERE c.username = %s
+            GROUP BY c.collectionid, c.collectionname
+            ORDER BY c.collectionname;
+        """, (user_id,))
+
         collections = cursor.fetchall()
+
         if not collections:
             print("No collections found.")
         else:
             print("Your Collections:")
-            for collection in collections:
-                print(f"- {collection[0]}")
+            for collection_id, collection_name, game_count in collections:
+                print(f"\n📂 {collection_name} ({game_count} games)")
+
+                # Fetch video games for this collection
+                cursor.execute("""
+                    SELECT v.title 
+                    FROM contains co
+                    JOIN videogame v ON co.videogameid = v.videogameid
+                    WHERE co.collectionid = %s
+                    ORDER BY v.title;
+                """, (collection_id,))
+
+                games = cursor.fetchall()
+
+                if games:
+                    for game in games:
+                        print(f"{game[0]}")
+                else:
+                    print("No games in this collection.")
+
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
     finally:
@@ -60,6 +91,16 @@ def view_collections(user_id):
             cursor.close()
         if conn:
             conn.close()
+
+
+# def print_games_in_collection(collection):
+#     conn = get_db_connection()
+#     if conn is None:
+#         print("Failed to connect to the database.")
+#         return
+#     try:
+#         cursor = conn.cursor()
+#         cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (collection,))
 
 
 # Function to create a collection
@@ -77,10 +118,13 @@ def create_collection(username):
             # Increment the max id by 1
             new_collection_id = max_id + 1
 
-            collectionname = input("Enter a name for your collection: ").strip()
-            if not collectionname:
-                collectionname = "Collection"
+            collectionname = input("Enter a name for your collection: ").strip()\
 
+            cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (user_id,))
+            collections = cursor.fetchall()
+            if collectionname in collections:
+                print("This collection already exists, please enter a new name")
+                collectionname = input("Enter a new name for your collection: ")
             cursor.execute(
                 'INSERT INTO "collections" ("collectionid", "username", "collectionname") VALUES (%s, %s, %s)',
                 (new_collection_id, username, collectionname)
@@ -113,7 +157,7 @@ def delete_collection(user_id):
         # Step 2: Find the collection ID corresponding to the collection name and user ID
         with conn.cursor() as cursor:
             cursor.execute(
-                'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "userid" = %s',
+                'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "username" = %s',
                 (collection_name, user_id)
             )
             result = cursor.fetchone()
@@ -129,11 +173,7 @@ def delete_collection(user_id):
             )
             conn.commit()
 
-            cursor.execute(
-                'DELETE FROM "contains" WHERE "collectionid" = %s',
-                (collection_id,)
-            )
-            conn.commit()
+            # cursor.execute(
 
             print(f"Collection '{collection_name}' and its associated movies have been deleted successfully.")
 
@@ -144,7 +184,7 @@ def delete_collection(user_id):
         if conn:
             conn.close()
 
-def addMovietoCollection():
+def addVideoGametoCollection():
     conn = get_db_connection()
     if conn is None:
         print("Failed to connect to the database.")
@@ -152,11 +192,11 @@ def addMovietoCollection():
 
     try:
         cursor = conn.cursor()
-        collection_name = input("Enter the name of the collection you want to add a movie to: ").strip()
+        collection_name = input("Enter the name of the collection you want to add a VideoGame to: ").strip()
         while not collection_name:
             collection_name = input("The name you input was not valid. Enter the name of the collection: ").strip()
 
-        cursor.execute("SELECT collectionid FROM collections WHERE userid = %s AND collectionname = %s",
+        cursor.execute("SELECT collectionid FROM collections WHERE username = %s AND collectionname = %s",
                        (user_id, collection_name))
         collection = cursor.fetchone()
         if not collection:
@@ -164,33 +204,33 @@ def addMovietoCollection():
             return
         collection_id = collection[0]
 
-        movie_id = None
-        while movie_id is None:
-            movie_name = input("Enter the name of the movie you would like to add: ").strip()
-            while not movie_name:
-                movie_name = input("The movie you input was not valid. Enter the name of the movie: ").strip()
+        game_id = None
+        while game_id is None:
+            game_name = input("Enter the name of the VideoGame you would like to add: ").strip()
+            while not game_name:
+                game_name = input("The Video Game you input was not valid. Enter the name of the Video Game: ").strip()
 
-            cursor.execute("SELECT movieid, mpaa_rating FROM movie WHERE title = %s", (movie_name,))
-            movies = cursor.fetchall()
+            cursor.execute("SELECT videogameid, esrb_rating FROM videogame WHERE title = %s", (game_name,))
+            videogames = cursor.fetchall()
 
-            if len(movies) == 1:
-                movie_id = movies[0][0]
-            elif len(movies) > 1:
-                print("There are multiple movies with that title. Please select the correct one:")
-                for m_id, rating in movies:
-                    print(f"{m_id}: {movie_name}, Rating: {rating}")
+            if len(videogames) == 1:
+                game_id = videogames[0][0]
+            elif len(videogames) > 1:
+                print("There are multiple videogames with that title. Please select the correct one:")
+                for m_id, rating in videogames:
+                    print(f"{m_id}: {game_name}, Rating: {rating}")
                 try:
-                    movie_id = int(input("Enter the movie ID: ").strip())
+                    game_id = int(input("Enter the Videogame ID: ").strip())
                 except ValueError:
-                    print("Invalid input. Please enter a numeric movie ID.")
-                    movie_id = None
+                    print("Invalid input. Please enter a numeric VideoGame ID.")
+                    game_id = None
             else:
-                print("Movie not found in the database.")
+                print("VideoGame not found in the database.")
                 continue
 
-        cursor.execute("INSERT INTO contains (collectionid, movieid) VALUES (%s, %s)", (collection_id, movie_id))
+        cursor.execute("INSERT INTO contains (collectionid, videogameid, username) VALUES (%s, %s, %s)", (collection_id, game_id, user_id))
         conn.commit()
-        print("Movie added successfully!")
+        print("Game added successfully!")
 
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
@@ -212,16 +252,16 @@ def modifyCollectionName(user_id):
         while not old_collection_name:
             print("The name you input was not valid.\nEnter the name of the collection you would like to change.")
             old_collection_name = input("Enter the name of the collection you would like to change:");
-            new_name = input("Enter the new collection name: ")
+        new_name = input("Enter the new collection name: ")
         with conn.cursor() as cursor:
-            cursor.execute("SELECT \"collectionid\" FROM \"collection\" WHERE \"collectionname\"=%s AND \"username\"=%s",
+            cursor.execute("SELECT \"collectionid\" FROM \"collections\" WHERE \"collectionname\"=%s AND \"username\"=%s",
                            (old_collection_name, user_id))
             result = cursor.fetchone()
             if result is None:
                 print(f"No collection found with the name '{old_collection_name}'.")
                 return
             coll_id = result[0]
-            cursor.execute("UPDATE \"collection\" SET \"collectionname\"=%s WHERE \"collectionid\"=%s",
+            cursor.execute("UPDATE \"collections\" SET \"collectionname\"=%s WHERE \"collectionid\"=%s",
                            (new_name, coll_id))
             conn.commit()
             print(f"Collection name updated successfully to '{new_name}'.")
@@ -230,7 +270,7 @@ def modifyCollectionName(user_id):
         conn.rollback()
 
 
-def delete_movie_from_collection(user_id):
+def delete_vidoeGame_from_collection(user_id):
     conn = get_db_connection()
     if conn is None:
         print("Failed to connect to the database.")
@@ -238,33 +278,34 @@ def delete_movie_from_collection(user_id):
 
     try:
         cursor = conn.cursor()
-        collection_name = input("Enter the name of the collection you want to remove a movie from: ").strip()
+        collection_name = input("Enter the name of the collection you want to remove a VideoGame from: ").strip()
         while not collection_name:
             collection_name = input("The name you input was not valid. Enter the name of the collection: ").strip()
 
-        cursor.execute("SELECT collectionid FROM collections WHERE userid = %s AND collectionname = %s",
-                       (user_id, collection_name))
+        cursor.execute(
+            'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "username" = %s',
+            (collection_name, user_id)
+        )
         collection = cursor.fetchone()
         if not collection:
             print("Collection not found.")
             return
         collection_id = collection[0]
 
-        movie_name = input("Enter the name of the movie you want to remove: ").strip()
-        while not movie_name:
-            movie_name = input("The movie you input was not valid. Enter the name of the movie: ").strip()
+        videogame_name = input("Enter the name of the VideoGame you want to remove: ").strip()
+        while not videogame_name:
+            videogame_name = input("The VideoGame you input was not valid. Enter the name of the VideoGame: ").strip()
 
-        cursor.execute("SELECT movieid FROM movie WHERE title = %s", (movie_name,))
-        movie = cursor.fetchone()
-        if not movie:
-            print("Movie not found in the database.")
+        cursor.execute("SELECT videogameid FROM videogame WHERE title = %s", (videogame_name,))
+        videogame = cursor.fetchone()
+        if not videogame:
+            print("Videogame not found in the database.")
             return
-        movie_id = movie[0]
+        game_id = videogame[0]
 
-        cursor.execute("DELETE FROM contains WHERE collectionid = %s AND movieid = %s", (collection_id, movie_id))
+        cursor.execute("DELETE FROM contains WHERE collectionid = %s AND videogameid = %s", (collection_id, game_id))
         conn.commit()
-        print("Movie removed successfully!")
-
+        print("Videogame removed successfully!")
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
         conn.rollback()
