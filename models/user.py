@@ -223,7 +223,7 @@ class User:
                 return
 
             follow_id = result[0]
-            cursor.execute("INSERT INTO user_followers (follower_id, following_id) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO follow_unfollow (followerusername, followeeusername) VALUES (%s, %s)",
                            (cls.user_id, follow_id))
             cls.conn.commit()
             print(" Successfully followed the user!")
