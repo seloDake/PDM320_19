@@ -3,7 +3,7 @@ import re
 import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
-from collection import printCollectionsMenu
+import collection
 # AUTHOR : Christabel Osei
 conn = get_db_connection()
 
@@ -157,7 +157,7 @@ class User:
             choice = input("Enter your choice: ")
             if choice == "2":
                 print("Accessing collections...")
-                printCollectionsMenu()
+                collection.printCollectionsMenu()
             elif choice == "3":
                 print("Searching for videogames...")
                 cls.search_video_game()

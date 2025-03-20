@@ -1,6 +1,6 @@
 import psycopg2
 from db import get_db_connection
-from collection import printCollectionsMenu
+import collection
 from user import User
 
 
@@ -28,7 +28,7 @@ def main():
             print("Taking you to VideoGame Menu... ")
             # add relevant methods here
         elif choice == '4':
-            printCollectionsMenu()
+            collection.printCollectionsMenu()
         elif choice == '5':
             exit()
 

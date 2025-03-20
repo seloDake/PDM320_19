@@ -1,6 +1,6 @@
 import psycopg2
 from db import get_db_connection # Ensure db.py is in the same directory
-from user import User
+import user
 # AUTHOR : KIFEKACHUKWU NWOSU
 conn = get_db_connection()
 user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
