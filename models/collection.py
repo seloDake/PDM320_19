@@ -1,8 +1,9 @@
 import psycopg2
-from db import get_db_connection  # Ensure db.py is in the same directory
+from db import get_db_connection # Ensure db.py is in the same directory
+from user import User
 # AUTHOR : KIFEKACHUKWU NWOSU
-# conn = get_db_connection()
-# user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
+conn = get_db_connection()
+user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
 def printCollectionsMenu():
     while True:
