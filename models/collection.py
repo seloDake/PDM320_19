@@ -29,7 +29,7 @@ def printCollectionsMenu():
         elif userinput == "4":
             addVideoGametoCollection()
         elif userinput == "5":
-            delete_movie_from_collection(user_id)
+            delete_vidoeGame_from_collection(user_id)
         elif userinput == "6":
             modifyCollectionName(user_id)
         elif userinput == "7":
@@ -47,18 +47,43 @@ def view_collections(user_id):
 
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (user_id,))
+
+        # Get all collections with game counts
+        cursor.execute("""
+            SELECT c.collectionid, c.collectionname, COUNT(co.videogameid) 
+            FROM collections c
+            LEFT JOIN contains co ON c.collectionid = co.collectionid
+            WHERE c.username = %s
+            GROUP BY c.collectionid, c.collectionname
+            ORDER BY c.collectionname;
+        """, (user_id,))
+
         collections = cursor.fetchall()
-        total= 0
-        for i in collections:
-            print(i)
-        print("totak in collections :", total)
+
         if not collections:
             print("No collections found.")
         else:
             print("Your Collections:")
-            for collection in collections:
-                print(f"- {collection[0]}")
+            for collection_id, collection_name, game_count in collections:
+                print(f"\n📂 {collection_name} ({game_count} games)")
+
+                # Fetch video games for this collection
+                cursor.execute("""
+                    SELECT v.title 
+                    FROM contains co
+                    JOIN videogame v ON co.videogameid = v.videogameid
+                    WHERE co.collectionid = %s
+                    ORDER BY v.title;
+                """, (collection_id,))
+
+                games = cursor.fetchall()
+
+                if games:
+                    for game in games:
+                        print(f"{game[0]}")
+                else:
+                    print("No games in this collection.")
+
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
     finally:
@@ -149,10 +174,6 @@ def delete_collection(user_id):
             conn.commit()
 
             # cursor.execute(
-            #     'DELETE FROM "contains" WHERE "collectionname" = %s',
-            #     (collection_name,)
-            # )
-            # conn.commit()
 
             print(f"Collection '{collection_name}' and its associated movies have been deleted successfully.")
 
@@ -201,15 +222,15 @@ def addVideoGametoCollection():
                 try:
                     game_id = int(input("Enter the Videogame ID: ").strip())
                 except ValueError:
-                    print("Invalid input. Please enter a numeric movie ID.")
+                    print("Invalid input. Please enter a numeric VideoGame ID.")
                     game_id = None
             else:
-                print("Movie not found in the database.")
+                print("VideoGame not found in the database.")
                 continue
 
-        cursor.execute("INSERT INTO contains (collectionid, videogameid) VALUES (%s, %s)", (collection_id, game_id))
+        cursor.execute("INSERT INTO contains (collectionid, videogameid, username) VALUES (%s, %s, %s)", (collection_id, game_id, user_id))
         conn.commit()
-        print("Movie added successfully!")
+        print("Game added successfully!")
 
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
@@ -249,7 +270,7 @@ def modifyCollectionName(user_id):
         conn.rollback()
 
 
-def delete_movie_from_collection(user_id):
+def delete_vidoeGame_from_collection(user_id):
     conn = get_db_connection()
     if conn is None:
         print("Failed to connect to the database.")
@@ -257,33 +278,34 @@ def delete_movie_from_collection(user_id):
 
     try:
         cursor = conn.cursor()
-        collection_name = input("Enter the name of the collection you want to remove a movie from: ").strip()
+        collection_name = input("Enter the name of the collection you want to remove a VideoGame from: ").strip()
         while not collection_name:
             collection_name = input("The name you input was not valid. Enter the name of the collection: ").strip()
 
-        cursor.execute("SELECT collectionid FROM collections WHERE userid = %s AND collectionname = %s",
-                       (user_id, collection_name))
+        cursor.execute(
+            'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "username" = %s',
+            (collection_name, user_id)
+        )
         collection = cursor.fetchone()
         if not collection:
             print("Collection not found.")
             return
         collection_id = collection[0]
 
-        movie_name = input("Enter the name of the movie you want to remove: ").strip()
-        while not movie_name:
-            movie_name = input("The movie you input was not valid. Enter the name of the movie: ").strip()
+        videogame_name = input("Enter the name of the VideoGame you want to remove: ").strip()
+        while not videogame_name:
+            videogame_name = input("The VideoGame you input was not valid. Enter the name of the VideoGame: ").strip()
 
-        cursor.execute("SELECT movieid FROM movie WHERE title = %s", (movie_name,))
-        movie = cursor.fetchone()
-        if not movie:
-            print("Movie not found in the database.")
+        cursor.execute("SELECT videogameid FROM videogame WHERE title = %s", (videogame_name,))
+        videogame = cursor.fetchone()
+        if not videogame:
+            print("Videogame not found in the database.")
             return
-        movie_id = movie[0]
+        game_id = videogame[0]
 
-        cursor.execute("DELETE FROM contains WHERE collectionid = %s AND movieid = %s", (collection_id, movie_id))
+        cursor.execute("DELETE FROM contains WHERE collectionid = %s AND videogameid = %s", (collection_id, game_id))
         conn.commit()
-        print("Movie removed successfully!")
-
+        print("Videogame removed successfully!")
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
         conn.rollback()
