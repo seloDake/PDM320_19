@@ -134,8 +134,10 @@ class User:
                     INSERT INTO users (username, email,first_name,last_name,password,creation_date)
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (username, email, first_name,last_name,password,current_time))
+                cursor.execute("""INSERT INTO login_record (username, login_date)VALUES (%s, %s)""", (username, current_time))
                 cls.conn.commit()
                 print("Your account has been created! Please sign in to access other functionalities.")
+                print("You login_record has been updated")
         except psycopg2.Error as e:
             print(f"Database error: {e}")
             cls.conn.rollback()
