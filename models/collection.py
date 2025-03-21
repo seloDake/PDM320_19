@@ -29,7 +29,7 @@ def printCollectionsMenu(user_id):
         elif userinput == "3":
             delete_collection(user_id)
         elif userinput == "4":
-            addVideoGametoCollection()
+            addVideoGametoCollection(user_id)
         elif userinput == "5":
             delete_vidoeGame_from_collection(user_id)
         elif userinput == "6":
