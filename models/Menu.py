@@ -8,27 +8,26 @@ conn = get_db_connection()
 def main():
 
     while True:
-        print("\nWelcome to the Video Game!")
-        print("Please sign in or create account with the folloeing commands: ")
-        print("\n1. Create User")
-        print("2. Login User")
-        print("9. Exit")
+        print("\n🎮 Welcome to the Game Vault! 🚀")
+        print("Please sign in or create an account with the following commands:")
+        print("\n1️⃣. Create User ✍️")
+        print("2️⃣. Login User 🔑")
+        print("9️⃣. Exit ❌")
+
         choice = input("Enter your choice: ")
+
         if choice == '1':
-            print("Taking you to Create a User...")
+            print("Taking you to Create a User... ✍️")
             User.create_account()
-            # add relevant methods here
         elif choice == '2':
-            print("Taking you to login... ")
-            # add relevant methods here
+            print("Taking you to login... 🔑")
             User.login()
         elif choice == '9':
+            print("Exiting... 👋")
             exit()
         else:
-            print("Invalid option. Try again.")
+            print("❌ Invalid option. Try again.")
             User.print_begin_menu()
-        
-
 
 
 if __name__ == '__main__':
