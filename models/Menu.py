@@ -1,4 +1,3 @@
-import psycopg2
 from db import get_db_connection
 import collection
 from user import User

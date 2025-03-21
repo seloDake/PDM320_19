@@ -1,4 +1,3 @@
-import psycopg2
 from db import get_db_connection # Ensure db.py is in the same directory
 import user
 # AUTHOR : KIFEKACHUKWU NWOSU
