@@ -183,7 +183,7 @@ class User:
                 from videoGame import printVideoGamesMenu
                 printVideoGamesMenu(cls.user_id)
             elif choice == "4":
-                print("Rating movies...")
+                print("Rating videoGames...")
                 from videoGame import rate_video_game
                 rate_video_game(cls.user_id, conn)
             elif choice == "5":
