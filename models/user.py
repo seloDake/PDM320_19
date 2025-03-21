@@ -4,6 +4,7 @@ import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
 
+
 # AUTHOR : Christabel Osei
 conn = get_db_connection()
 
@@ -178,13 +179,13 @@ class User:
                 from collection import printCollectionsMenu
                 printCollectionsMenu(cls.user_id)
             elif choice == "3":
-                print("Searching for videogames...")
-                cls.search_video_game()
-                
-            
+                print("Play Video Game")
+                from videoGame import printVideoGamesMenu
+                printVideoGamesMenu(cls.user_id)
             elif choice == "4":
                 print("Rating movies...")
-                cls.rate_video_game()
+                from videoGame import rate_video_game
+                rate_video_game(cls.user_id, conn)
             elif choice == "5":
                 print("Following users...")
                 cls.follow_unfollow_menu()
