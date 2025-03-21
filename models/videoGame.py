@@ -61,7 +61,7 @@ def search_video_games_by_name():
         print(f"🔍 Searching for '{name}', sorted by chosen criteria...\n")
 
         query = f"""
-SELECT v.title,
+    SELECT v.title,
        v.esrb_rating,
        h.release_date,
        h.price,
