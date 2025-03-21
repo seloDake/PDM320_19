@@ -88,7 +88,12 @@ class User:
             else:
                 break
         
-        email = input("Please enter your email: ").strip()
+        
+        while True:
+            email = input("Please enter your email: ").strip()
+            if not re.match():
+                print("No")
+            break
        
 
         while True:
@@ -100,10 +105,19 @@ class User:
 
         while True:
             password = input("Please enter a new password: ").strip()
-            if len(password) < 6:
+            if len(password) < 8:
                 print("Password must be at least 6 characters long.")
-            else:
-                break
+                continue
+            if not re.search(r"[A-Z]", password):
+                print("Error: Password must contain at least one uppercase letter (A-Z).")
+                continue
+            if not re.search(r"[a-z]", password):
+                print("Error: Password must contain at least one uppercase letter (A-Z).")
+                continue
+            if not re.search(r"[@$!%?&]", password):
+                print("Error: Password must contain at least one uppercase letter (A-Z).")
+                continue
+            break
 
         current_time = datetime.datetime.now()
 
