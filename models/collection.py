@@ -177,7 +177,7 @@ def delete_collection(user_id):
 
             # cursor.execute(
 
-            print(f"Collection '{collection_name}' and its associated movies have been deleted successfully.")
+            print(f"Collection '{collection_name}' and its associated games have been deleted successfully.")
 
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")

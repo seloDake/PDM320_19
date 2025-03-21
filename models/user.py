@@ -169,7 +169,7 @@ class User:
         while True:
             print("\nFind below more functionality:")
             print("2: Access and Edit Collections")
-            print("3: Search for Video Games")
+            print("3: Play Video Games")
             print("4: Rate Video Games")
             print("5: Follow and unfollow")
             print("9: Logout")
