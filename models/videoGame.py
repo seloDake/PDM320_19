@@ -5,7 +5,7 @@ from db import get_db_connection # Ensure db.py is in the same directory
 # Author : Kiffy Nwosu
 # AUTHOR : Selorm Dake
 conn = get_db_connection()
-username = "robert45"  # Example user name THAT WILL NOT QORK
+username = "cweiss"  # Example user name THAT WILL NOT QORK
 
 def printVideoGamesMenu():
     while True:
@@ -183,48 +183,69 @@ def rate_video_game(username, conn):
             print("Game not found.")
             return
         game_id = result[0]
-        while True:
-            try:
-                rating = int(input("Enter your star rating (1-5): ").strip())
-                if 1 <= rating <= 5:
-                    break
-                else:
-                    print(" Please enter a number between 1 and 5.")
-            except ValueError:
-                print(" Invalid input. Please enter a number between 1 and 5.")
+        # Check if the user has already rated this game
+        cursor.execute("SELECT rating FROM rates WHERE username = %s AND videogameid = %s", (username, game_id))
+        existing_rating = cursor.fetchone()
+        if existing_rating:
+            print(f"You have already rated this game with {existing_rating[0]} stars.")
+            printVideoGamesMenu()  
+        else:
+            while True:
+                try:
+                    rating = int(input("Enter your star rating (1-5): ").strip())
+                    if 1 <= rating <= 5:
+                        break
+                    else:
+                        print("Please enter a number between 1 and 5.") 
+                except ValueError:
+                    print(" Invalid input. Please enter a number between 1 and 5.")
         cursor.execute("""
             INSERT INTO rates (username, videogameid, rating)
-            VALUES (%s, %s, %s)
-                       """)
+            VALUES (%s, %s, %s) """,(username, game_id, rating))
         conn.commit()
         print(f" You rated {game_name} with {rating} stars.")
 
-@classmethod
-def play_random_game(cls):
+
+def play_random_game(username, conn):
     """Allows the user to play a random game from their collection and logs play time."""
-    with cls.conn.cursor() as cursor:
+
+    with conn.cursor() as cursor:
+        # Select a random game from the user's collection.
         cursor.execute('''
-            SELECT vg.name, vg.video_game_id FROM videogame vg
-            JOIN user_collections uc ON vg.video_game_id = uc.video_game_id
-            WHERE uc.user_id = %s
+            SELECT vg.title, vg.videogameid FROM videogame vg
+            JOIN contains uc ON vg.videogameid = uc.videogameid
+            WHERE uc.username = %s
             ORDER BY RANDOM() LIMIT 1
-        ''', (cls.user_id,))
+        ''', (username,))
         result = cursor.fetchone()
         if not result:
             print("⚠️ You have no games in your collection to play.")
             return
+        
         game_name, game_id = result
+        
+        # Log the start time of the play session.
         start_time = datetime.datetime.now()
-        print(f"🎮 You started playing {game_name} at {start_time}.")
+        print(f"You started playing {game_name} at {start_time}.")
         input("Press Enter to stop playing...")
+        
+        # Log the end time and calculate the total play time in minutes.
         end_time = datetime.datetime.now()
-        play_time = (end_time - start_time).total_seconds() // 60  # Convert seconds to minutes
+        play_time = (end_time - start_time).total_seconds() // 60
+        
+        # Insert the play session into the database.
         cursor.execute("""
-            INSERT INTO game_play_sessions (user_id, video_game_id, start_time, end_time, play_time)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (cls.user_id, game_id, start_time, end_time, play_time))
-        cls.conn.commit()
-    print(f"✅ You played {game_name} for {play_time} minutes.")
+            INSERT INTO plays (username, videogameid, session_start, session_end)
+            VALUES (%s, %s, %s, %s)
+        """, (username, game_id, start_time, end_time))
+        conn.commit()
+        print(f"You played {game_name} for {play_time} minutes. Would you like to rate it?\n")
+        userinput = input("Enter yes or no: ").strip()
+        if userinput == "yes":
+            rate_video_game(username, conn)
+        elif userinput == "no":
+            print("Thank you for playing!")
+            printVideoGamesMenu()
 
 # Function to reconnect to the database
 def reconnect_db():
@@ -234,5 +255,5 @@ def reconnect_db():
         print("Reconnected to the database successfully.")
 
 #play_video_game(username,conn)
-#play_random_game()
+#play_random_game(username,conn)
 rate_video_game(username,conn)
