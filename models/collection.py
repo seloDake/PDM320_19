@@ -2,7 +2,7 @@ import psycopg2
 from db import get_db_connection  # Ensure db.py is in the same directory
 # AUTHOR : KIFEKACHUKWU NWOSU
 conn = get_db_connection()
-user_id = 3  # Example user ID THAT WILL NOT QORK
+user_id = 3  # Example user ID THAT WILL NOT WORK
 
 def printCollectionsMenu():
     while True:
