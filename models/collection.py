@@ -7,16 +7,16 @@ conn = get_db_connection()
 
 def printCollectionsMenu(user_id):
     while True:
-        print("\nWelcome to the Collections Menu!")
+        print("\nWelcome to the Collections Menu! 🎮")
         print("Here are the available commands: ")
-        print("0: Reprint the collections menu")
-        print("1: Create a collection")
-        print("2: View a List of Your Collections")
-        print("3: Delete a collection")
-        print("4: Add a VideoGame to a collection")
-        print("5: Delete a VideoGame from a collection")
-        print("6: Modify a collection name")
-        print("7: Return to the main menu")
+        print("0️⃣: Reprint the Menu menu 🔄")
+        print("1️⃣: Create a collection ➕")
+        print("2️⃣: View a List of Your Collections 📋")
+        print("3️⃣: Delete a collection 🗑️")
+        print("4️⃣: Add a VideoGame to a collection ➕🎮")
+        print("5️⃣: Delete a VideoGame from a collection ❌🎮")
+        print("6️⃣: Modify a collection name ✏️")
+        print("7️⃣: Return to the main menu ⬅️")
 
         userinput = input("Enter the number that corresponds to your command: ").strip()
         if userinput == "0":
