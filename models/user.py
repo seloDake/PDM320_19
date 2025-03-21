@@ -47,7 +47,9 @@ class User:
                 cls.login_checker = True
                 current_time = datetime.datetime.now()
 
-                cursor.execute("""UPDATE login_record SET login_date = %s WHERE username = %s""", (datetime.datetime.now(), cls.user_id))
+                cursor.execute("""UPDATE login_record SET login_date = %s WHERE username = %s""", (current_time, cls.user_id))
+                if cursor.rowcount == 0:
+                    cursor.execute("""INSERT INTO login_record (username, login_date)VALUES (%s, %s)""", (cls.user_id, current_time))
                 cls.conn.commit()
                 print("Login successful!")
                 cls.print_main_menu()
