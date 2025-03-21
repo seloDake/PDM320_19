@@ -8,7 +8,7 @@ from db import get_db_connection # Ensure db.py is in the same directory
 conn = get_db_connection()
 
 class User:
-    user_id = -1  # Static user ID
+    # user_id = -1  # Static user ID
     login_checker = False
     conn = None
     session = None
