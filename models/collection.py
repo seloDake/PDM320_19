@@ -3,9 +3,10 @@ from db import get_db_connection # Ensure db.py is in the same directory
 import user
 # AUTHOR : KIFEKACHUKWU NWOSU
 conn = get_db_connection()
-user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
+# user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
-def printCollectionsMenu():
+
+def printCollectionsMenu(user_id):
     while True:
         print("\nWelcome to the Collections Menu!")
         print("Here are the available commands: ")
@@ -121,7 +122,7 @@ def create_collection(username):
 
             collectionname = input("Enter a name for your collection: ").strip()\
 
-            cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (user_id,))
+            cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (username,))
             collections = cursor.fetchall()
             if collectionname in collections:
                 print("This collection already exists, please enter a new name")

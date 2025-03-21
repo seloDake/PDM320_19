@@ -3,7 +3,7 @@ import re
 import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
-import collection
+
 # AUTHOR : Christabel Osei
 conn = get_db_connection()
 
@@ -46,9 +46,8 @@ class User:
                 cls.login_checker = True
                 current_time = datetime.datetime.now()
 
-                # cursor.execute('UPDATE "access_records" SET "accessid" = %s WHERE "username" = %s', (current_time, cls.user_id))
-                # cls.conn.commit()
-
+                cursor.execute("""UPDATE login_record SET login_date = %s WHERE username = %s""", (datetime.datetime.now(), cls.user_id))
+                cls.conn.commit()
                 print("Login successful!")
                 cls.print_main_menu()
             else:
@@ -125,7 +124,7 @@ class User:
     
     @staticmethod
     def print_begin_menu():
-        print("\nWelcome to the Video Game!")
+        print("\nWelcome to the  Video Game!")
         print("Please sign in or create account with the folloeing commands: ")
         print("1: Create Account")
         print("0: Login")
@@ -157,7 +156,8 @@ class User:
             choice = input("Enter your choice: ")
             if choice == "2":
                 print("Accessing collections...")
-                collection.printCollectionsMenu()
+                from collection import printCollectionsMenu
+                printCollectionsMenu(cls.user_id)
             elif choice == "3":
                 print("Searching for videogames...")
                 cls.search_video_game()
