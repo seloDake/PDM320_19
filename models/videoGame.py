@@ -3,6 +3,7 @@ import psycopg2
 from db import get_db_connection # Ensure db.py is in the same directory
 # AUTHOR : Christabel Osei
 # Author : Kiffy Nwosu
+# AUTHOR : Selorm Dake
 conn = get_db_connection()
 def play_video_game(cls):
     """Logs when a user starts and ends playing a video game."""
