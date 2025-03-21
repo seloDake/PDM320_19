@@ -91,8 +91,13 @@ class User:
         
         while True:
             email = input("Please enter your email: ").strip()
-            if not re.match():
-                print("No")
+            if not re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", email):
+                print("Error: Invalid email format. Please enter a valid email (e.g., user@example.com).")
+            with cls.conn.cursor() as cursor:
+                cursor.execute("SELECT email FROM users WHERE email = %s", (email,))
+                if cursor.fetchone():
+                    print("Error: Email is already registered. Please use a different email.")
+                    continue
             break
        
 
