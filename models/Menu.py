@@ -8,25 +8,24 @@ def main():
     print("Welcome to the Video Game Vault")
 
     while True:
-        print("\n1. Create User")
-        print("2. Login User")
-        print("3. View Video Game Menu")
-        print ("4.View Collections Menu")
-        print("5. Exit")
+        print("0️⃣: Reprint the Menu menu 🔄")
+        print("2️⃣. Login User 🔑")
+        print("3️⃣. View Video Game Menu 📋")
+        print("4️⃣. View Collections Menu 📂")
+        print("5️⃣. Exit 🚪")
         choice = input("Enter your choice: ")
         if choice == '1':
-            print("Taking you to Create a User...")
-            # add relevant methods here
+            print("Taking you to Create a User... 📝")
         elif choice == '2':
-            print("Taking you to login... ")
-            # add relevant methods here
-
+            print("Taking you to login... 🔑")
         elif choice == '3':
-            print("Taking you to VideoGame Menu... ")
-            # add relevant methods here
+            print("Taking you to Video Game Menu... 🎮")
         elif choice == '4':
+            print("Taking you to Collections Menu... 📂")
             printCollectionsMenu()
-
+        elif choice == '5':
+            print("Exiting... 👋")
+            break
 
 
 if __name__ == '__main__':

@@ -6,16 +6,16 @@ user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
 def printCollectionsMenu():
     while True:
-        print("\nWelcome to the Collections Menu!")
+        print("\nWelcome to the Collections Menu! 🎮")
         print("Here are the available commands: ")
-        print("0: Reprint the collections menu")
-        print("1: Create a collection")
-        print("2: View a List of Your Collections")
-        print("3: Delete a collection")
-        print("4: Add a VideoGame to a collection")
-        print("5: Delete a VideoGame from a collection")
-        print("6: Modify a collection name")
-        print("7: Return to the main menu")
+        print("0️⃣: Reprint the Menu menu 🔄")
+        print("1️⃣: Create a collection ➕")
+        print("2️⃣: View a List of Your Collections 📋")
+        print("3️⃣: Delete a collection 🗑️")
+        print("4️⃣: Add a VideoGame to a collection ➕🎮")
+        print("5️⃣: Delete a VideoGame from a collection ❌🎮")
+        print("6️⃣: Modify a collection name ✏️")
+        print("7️⃣: Return to the main menu ⬅️")
 
         userinput = input("Enter the number that corresponds to your command: ").strip()
         if userinput == "0":
@@ -93,16 +93,6 @@ def view_collections(user_id):
             conn.close()
 
 
-# def print_games_in_collection(collection):
-#     conn = get_db_connection()
-#     if conn is None:
-#         print("Failed to connect to the database.")
-#         return
-#     try:
-#         cursor = conn.cursor()
-#         cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (collection,))
-
-
 # Function to create a collection
 def create_collection(username):
     conn = get_db_connection()
@@ -151,10 +141,8 @@ def delete_collection(user_id):
         return
 
     try:
-        # Step 1: Ask the user to enter the collection name they want to delete
         collection_name = input("Enter the name of the collection you would like to delete: ").strip()
 
-        # Step 2: Find the collection ID corresponding to the collection name and user ID
         with conn.cursor() as cursor:
             cursor.execute(
                 'SELECT "collectionid" FROM "collections" WHERE "collectionname" = %s AND "username" = %s',
@@ -173,7 +161,6 @@ def delete_collection(user_id):
             )
             conn.commit()
 
-            # cursor.execute(
 
             print(f"Collection '{collection_name}' and its associated movies have been deleted successfully.")
 
@@ -275,7 +262,6 @@ def delete_vidoeGame_from_collection(user_id):
     if conn is None:
         print("Failed to connect to the database.")
         return
-
     try:
         cursor = conn.cursor()
         collection_name = input("Enter the name of the collection you want to remove a VideoGame from: ").strip()
@@ -316,7 +302,6 @@ def delete_vidoeGame_from_collection(user_id):
         if conn:
             conn.close()
 
-# Function to reconnect to the database
 def reconnect_db():
     print("Attempting to reconnect to the database...")
     conn = get_db_connection()
