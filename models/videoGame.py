@@ -21,7 +21,7 @@ def printVideoGamesMenu(username):
 
         userinput = input("Enter the number that corresponds to your command: ").strip()
         if userinput == "0":
-            printVideoGamesMenu()
+            printVideoGamesMenu(username)
         elif userinput == "1":
             play_video_game(username,conn)
         elif userinput == "2":
