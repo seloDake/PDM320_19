@@ -46,7 +46,9 @@ class User:
                 cls.login_checker = True
                 current_time = datetime.datetime.now()
 
-                cursor.execute("""UPDATE login_record SET login_date = %s WHERE username = %s""", (datetime.datetime.now(), cls.user_id))
+                cursor.execute("""UPDATE login_record SET login_date = %s WHERE username = %s""", (current_time, cls.user_id))
+                if cursor.rowcount == 0:
+                    cursor.execute("""INSERT INTO login_record (username, login_date)VALUES (%s, %s)""", (cls.user_id, current_time))
                 cls.conn.commit()
                 print("Login successful!")
                 cls.print_main_menu()
@@ -125,20 +127,112 @@ class User:
             break
 
         current_time = datetime.datetime.now()
+        selected_platform_id = cls.assign_platform()
 
         try:
             with cls.conn.cursor() as cursor:
                 # increment_user_id = cls.increment_counter_user_id()
+               
+
                 cursor.execute("""
                     INSERT INTO users (username, email,first_name,last_name,password,creation_date)
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (username, email, first_name,last_name,password,current_time))
+                cursor.execute("""INSERT INTO login_record (username, login_date)VALUES (%s, %s)""", (username, current_time))
+                cursor.execute("""INSERT INTO owns (username, platformid)VALUES (%s, %s)""", (username, selected_platform_id))
                 cls.conn.commit()
                 print("Your account has been created! Please sign in to access other functionalities.")
+                print("You login_record has been updated")
         except psycopg2.Error as e:
             print(f"Database error: {e}")
             cls.conn.rollback()
 
+    @staticmethod
+    def assign_platform():
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT platformid, name FROM platform ORDER BY RANDOM() LIMIT 10")
+            platforms = cursor.fetchall()
+
+        print("\n🎮 Select a platform from the list below:")
+        for idx, (platformid, name) in enumerate(platforms, 1):
+            print(f"{idx}: {name}")
+
+        while True:
+            try:
+                choice = int(input("Enter the number of your chosen platform: ").strip())
+                if 1 <= choice <= len(platforms):
+                    return platforms[choice - 1][0]
+                else:
+                    print("Invalid choice. Try a number from the list.")
+            except ValueError:
+                print("Please enter a valid number.")
+
+    @classmethod
+    def manage_platforms(cls):
+        """Allows a user to view and add platforms."""
+        while True:
+            print("\n🎮 Platform Management Menu")
+            print("1: View my platforms")
+            print("2: Add a new platform")
+            print("3: Back to main menu")
+            choice = input("Enter your choice: ").strip()
+
+            if choice == "1":
+                cls.view_user_platforms()
+            elif choice == "2":
+                cls.add_new_platform()
+            elif choice == "3":
+                break
+            else:
+                print("Invalid input. Try again.")
+
+    @classmethod
+    def view_user_platforms(cls):
+        with cls.conn.cursor() as cursor:
+            cursor.execute("""SELECT p.name FROM owns o JOIN platform p ON o.platformid = p.platformid WHERE o.username = %s""", (cls.user_id,))
+            platforms = cursor.fetchall()
+
+            if not platforms:
+                print("⚠️ You don't have any platforms yet.")
+            else:
+                print("\n🕹️ Your Platforms:")
+                for p in platforms:
+                    print(f"– {p[0]}")
+
+    @classmethod
+    def add_new_platform(cls):
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # Get 10 random platforms
+            cursor.execute("SELECT platformid, name FROM platform ORDER BY RANDOM() LIMIT 10")
+            platforms = cursor.fetchall()
+
+            print("\n🎮 Choose a platform to add:")
+            for idx, (pid, name) in enumerate(platforms, 1):
+                print(f"{idx}: {name}")
+
+            while True:
+                try:
+                    choice = int(input("Enter the number of your chosen platform: ").strip())
+                    if 1 <= choice <= len(platforms):
+                        selected_platform_id = platforms[choice - 1][0]
+
+                        # Check if already owned
+                        cursor.execute("""SELECT 1 FROM owns WHERE username = %s AND platformid = %s""", (cls.user_id, selected_platform_id))
+                        if cursor.fetchone():
+                            print("⚠️ You already own this platform.")
+                            return
+
+                        # Add new platform
+                        cursor.execute("""INSERT INTO owns (username, platformid) VALUES (%s, %s)""", (cls.user_id, selected_platform_id))
+                        cls.conn.commit()
+                        print("✅ Platform added successfully!")
+                        return
+                    else:
+                        print("Invalid selection. Try again.")
+                except ValueError:
+                    print("Please enter a number.")
 
     
     @staticmethod
@@ -172,6 +266,7 @@ class User:
             print("4: Rate Video Games")
             print("5: Follow and unfollow a user")
             print("6: Search for a video game: ")
+            print("7: Manage Platforms")
             print("9: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
@@ -192,6 +287,8 @@ class User:
             elif choice == "6":
                 from videoGame import printVideoGamesMenu
                 printVideoGamesMenu(cls.user_id)
+            elif choice == "7":
+                cls.manage_platforms()
             elif choice == "9":
                 cls.logout()
                 break
@@ -285,8 +382,8 @@ class User:
                            (cls.user_id, unfollow_id))
             cls.conn.commit()
             print(" Successfully unfollowed the user!")
-
-
+    
+   
 # Function to reconnect to the database
 def reconnect_db():
     print("Attempting to reconnect to the database...")
