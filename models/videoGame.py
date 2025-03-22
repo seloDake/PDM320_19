@@ -21,7 +21,7 @@ def printVideoGamesMenu(username):
 
         userinput = input("Enter the number that corresponds to your command: ").strip()
         if userinput == "0":
-            printVideoGamesMenu()
+            printVideoGamesMenu(username)
         elif userinput == "1":
             play_video_game(username,conn)
         elif userinput == "2":
@@ -70,7 +70,7 @@ def play_video_game(username, conn):
             rate_video_game(username, conn)
         elif userinput == "no":
             print("Thank you for playing!")
-            printVideoGamesMenu()
+            printVideoGamesMenu(username)
         
 def videogame_search_menu():
     while True:
@@ -647,7 +647,7 @@ def rate_video_game(username, conn):
         existing_rating = cursor.fetchone()
         if existing_rating:
             print(f"You have already rated this game with {existing_rating[0]} stars.")
-            printVideoGamesMenu()  
+            printVideoGamesMenu(username)  
         else:
             while True:
                 try:
@@ -704,7 +704,7 @@ def play_random_game(username, conn):
             rate_video_game(username, conn)
         elif userinput == "no":
             print("Thank you for playing!")
-            printVideoGamesMenu()
+            printVideoGamesMenu(username)
 
 # Function to reconnect to the database
 def reconnect_db():
