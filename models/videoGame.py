@@ -67,7 +67,7 @@ def play_video_game(username, conn):
         print(f"You played {game_name} for {play_time} minutes. Would you like to rate it?\n")
         userinput = input("Enter yes or no: ").strip()
         if userinput == "yes":
-            rate_video_game()
+            rate_video_game(username, conn)
         elif userinput == "no":
             print("Thank you for playing!")
             printVideoGamesMenu()
