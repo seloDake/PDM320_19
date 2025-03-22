@@ -178,6 +178,7 @@ def delete_collection(user_id):
         if conn:
             conn.close()
 
+
 def addVideoGametoCollection(user_id):
     conn = get_db_connection()
     if conn is None:
@@ -222,7 +223,23 @@ def addVideoGametoCollection(user_id):
                 print("VideoGame not found in the database.")
                 continue
 
-        cursor.execute("INSERT INTO contains (collectionid, videogameid, username) VALUES (%s, %s, %s)", (collection_id, game_id, user_id))
+        # Check if the user owns a platform that supports this game
+        cursor.execute("""
+            SELECT DISTINCT p.platformid 
+            FROM hosts h 
+            JOIN platform p ON h.platformid = p.platformid 
+            WHERE h.videogameid = %s
+        """, (game_id,))
+        supported_platforms = {row[0] for row in cursor.fetchall()}
+
+        cursor.execute("SELECT platformid FROM owns WHERE username = %s", (user_id,))
+        owned_platforms = {row[0] for row in cursor.fetchall()}
+
+        if not supported_platforms.intersection(owned_platforms):
+            print("Warning: You are adding a game to your collection but do not own a supported platform for this game.")
+
+        cursor.execute("INSERT INTO contains (collectionid, videogameid, username) VALUES (%s, %s, %s)",
+                       (collection_id, game_id, user_id))
         conn.commit()
         print("Game added successfully!")
 
@@ -235,6 +252,7 @@ def addVideoGametoCollection(user_id):
             cursor.close()
         if conn:
             conn.close()
+
 
 def modifyCollectionName(user_id):
     conn = get_db_connection()
