@@ -112,8 +112,7 @@ def view_collections(user_id):
                 games = cursor.fetchall()
 
                 if games:
-                    for game in games:
-                        print(f"{game[0]}")
+                    totalplaytimehelper(user_id, conn)                        
                 else:
                     print("No games in this collection.")
 
