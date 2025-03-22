@@ -169,6 +169,72 @@ class User:
             except ValueError:
                 print("Please enter a valid number.")
 
+    @classmethod
+    def manage_platforms(cls):
+        """Allows a user to view and add platforms."""
+        while True:
+            print("\n🎮 Platform Management Menu")
+            print("1: View my platforms")
+            print("2: Add a new platform")
+            print("3: Back to main menu")
+            choice = input("Enter your choice: ").strip()
+
+            if choice == "1":
+                cls.view_user_platforms()
+            elif choice == "2":
+                cls.add_new_platform()
+            elif choice == "3":
+                break
+            else:
+                print("Invalid input. Try again.")
+
+    @classmethod
+    def view_user_platforms(cls):
+        with cls.conn.cursor() as cursor:
+            cursor.execute("""SELECT p.name FROM owns o JOIN platform p ON o.platformid = p.platformid WHERE o.username = %s""", (cls.user_id,))
+            platforms = cursor.fetchall()
+
+            if not platforms:
+                print("⚠️ You don't have any platforms yet.")
+            else:
+                print("\n🕹️ Your Platforms:")
+                for p in platforms:
+                    print(f"– {p[0]}")
+
+    @classmethod
+    def add_new_platform(cls):
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # Get 10 random platforms
+            cursor.execute("SELECT platformid, name FROM platform ORDER BY RANDOM() LIMIT 10")
+            platforms = cursor.fetchall()
+
+            print("\n🎮 Choose a platform to add:")
+            for idx, (pid, name) in enumerate(platforms, 1):
+                print(f"{idx}: {name}")
+
+            while True:
+                try:
+                    choice = int(input("Enter the number of your chosen platform: ").strip())
+                    if 1 <= choice <= len(platforms):
+                        selected_platform_id = platforms[choice - 1][0]
+
+                        # Check if already owned
+                        cursor.execute("""SELECT 1 FROM owns WHERE username = %s AND platformid = %s""", (cls.user_id, selected_platform_id))
+                        if cursor.fetchone():
+                            print("⚠️ You already own this platform.")
+                            return
+
+                        # Add new platform
+                        cursor.execute("""INSERT INTO owns (username, platformid) VALUES (%s, %s)""", (cls.user_id, selected_platform_id))
+                        cls.conn.commit()
+                        print("✅ Platform added successfully!")
+                        return
+                    else:
+                        print("Invalid selection. Try again.")
+                except ValueError:
+                    print("Please enter a number.")
+
     
     @staticmethod
     def print_begin_menu():
@@ -200,6 +266,7 @@ class User:
             print("3: Play Video Games")
             print("4: Rate Video Games")
             print("5: Follow and unfollow")
+            print("6: Manage Platforms")
             print("9: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
@@ -217,6 +284,8 @@ class User:
             elif choice == "5":
                 print("Following users...")
                 cls.follow_unfollow_menu()
+            elif choice == "6":
+                cls.manage_platforms()
             elif choice == "9":
                 cls.logout()
                 break
