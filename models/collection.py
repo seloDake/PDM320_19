@@ -48,7 +48,7 @@ def totalplaytimehelper(user_id, conn):
         # Get all video game IDs and their names from the user's collection
         cursor.execute("""
             SELECT vg.videogameid, vg.title
-            FROM ucollections uc
+            FROM contains uc
             JOIN videogame vg ON uc.videogameid = vg.videogameid
             WHERE uc.username = %s
         """, (user_id,))
@@ -58,7 +58,7 @@ def totalplaytimehelper(user_id, conn):
             print("You have no games in your collection.")
             return
 
-        print("\n🎮 Total Playtime for Each Game:\n")
+        print("🎮 Game & Playtime:\n")
 
         # Iterate through each game and calculate total playtime
         for game_id, game_title in games:
@@ -99,7 +99,6 @@ def view_collections(user_id):
             print("Your Collections:")
             for collection_id, collection_name, game_count in collections:
                 print(f"\n📂 {collection_name} ({game_count} games)")
-
                 # Fetch video games for this collection
                 cursor.execute("""
                     SELECT v.title 
@@ -115,6 +114,7 @@ def view_collections(user_id):
                     totalplaytimehelper(user_id, conn)                        
                 else:
                     print("No games in this collection.")
+            
 
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")

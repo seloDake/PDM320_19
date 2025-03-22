@@ -71,7 +71,7 @@ def play_video_game(username, conn):
             rate_video_game()
         elif userinput == "no":
             print("Thank you for playing!")
-            printVideoGamesMenu()
+            printVideoGamesMenu(username)
         
 def videogame_search_menu():
     while True:
@@ -705,7 +705,7 @@ def play_random_game(username, conn):
             rate_video_game(username, conn)
         elif userinput == "no":
             print("Thank you for playing!")
-            printVideoGamesMenu()
+            printVideoGamesMenu(username)
 
 # Function to reconnect to the database
 def reconnect_db():
