@@ -4,7 +4,6 @@ import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
 
-
 # AUTHOR : Christabel Osei
 conn = get_db_connection()
 
@@ -265,8 +264,9 @@ class User:
             print("2: Access and Edit Collections")
             print("3: Play Video Games")
             print("4: Rate Video Games")
-            print("5: Follow and unfollow")
-            print("6: Manage Platforms")
+            print("5: Follow and unfollow a user")
+            print("6: Search for a video game: ")
+            print("7: Manage Platforms")
             print("9: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
@@ -285,6 +285,9 @@ class User:
                 print("Following users...")
                 cls.follow_unfollow_menu()
             elif choice == "6":
+                from videoGame import printVideoGamesMenu
+                printVideoGamesMenu(cls.user_id)
+            elif choice == "7":
                 cls.manage_platforms()
             elif choice == "9":
                 cls.logout()

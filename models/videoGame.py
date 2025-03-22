@@ -8,7 +8,6 @@ import user
 # Author : Kiffy Nwosu
 # AUTHOR : Selorm Dake
 conn = get_db_connection()
-#username = "cweiss"  # Example user name THAT WILL NOT QORK
 
 def printVideoGamesMenu(username):
     while True:
@@ -714,7 +713,3 @@ def reconnect_db():
     if conn:
         print("Reconnected to the database successfully.")
 
-#play_video_game(username,conn)
-#play_random_game(username,conn)
-# rate_video_game(username,conn)
-# videogame_search_menu()
