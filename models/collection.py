@@ -3,7 +3,6 @@ import user
 import psycopg2
 # AUTHOR : KIFEKACHUKWU NWOSU
 conn = get_db_connection()
-# user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
 
 def printCollectionsMenu(user_id):
