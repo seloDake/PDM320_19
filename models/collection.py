@@ -95,14 +95,6 @@ def view_collections(user_id):
             conn.close()
 
 
-# def print_games_in_collection(collection):
-#     conn = get_db_connection()
-#     if conn is None:
-#         print("Failed to connect to the database.")
-#         return
-#     try:
-#         cursor = conn.cursor()
-#         cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (collection,))
 
 
 # Function to create a collection
