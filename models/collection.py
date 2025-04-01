@@ -60,11 +60,13 @@ def view_collections(user_id):
         """, (user_id,))
 
         collections = cursor.fetchall()
+        collections_num = len(collections)
 
         if not collections:
             print("No collections found.")
         else:
             print("Your Collections:")
+            print("Total items in collections: ",collections_num)
             for collection_id, collection_name, game_count in collections:
                 print(f"\n📂 {collection_name} ({game_count} games)")
 
