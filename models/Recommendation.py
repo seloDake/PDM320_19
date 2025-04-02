@@ -17,13 +17,15 @@ def amongstFollowers(user_id):
         query = """
             SELECT v.title 
             FROM videogame AS v
-            JOIN plays AS p ON v."videogameid" = p."videogameid"
-            JOIN follow_unfollow AS f ON "userID" = "followeeusername"
-            WHERE "followerusername" = %s
+            JOIN plays AS p ON v.videogameid = p.videogameid
+            JOIN follow_unfollow AS f ON p.username = f.followeeusername
+            WHERE f.followerusername = %s
             GROUP BY v.title
             ORDER BY COUNT(v.title) DESC
             LIMIT 20;
         """
+
+
 
         with conn.cursor() as cursor:
             cursor.execute(query, (user_id,))
@@ -33,7 +35,7 @@ def amongstFollowers(user_id):
             print("❌ No Videogames found among followers.")
             return
 
-        print("\n🎥 Most Played Movies Among Followers:")
+        print("\n🎥 Most Played VideoGa,es Among Followers:")
         for row in result_set:
             print(f"   🎬 {row[0]}")
 
@@ -43,5 +45,9 @@ def amongstFollowers(user_id):
     finally:
         if conn:
             conn.close()
-
-amongstFollowers("alicia76");
+# a lot of them will say no u=common games due to how the dataset is computed, hwowever these ones have some but not up to 20
+#ocarr
+#wcameron
+#piercetravis
+#margaretdonovan
+amongstFollowers("margaretdonovan");
