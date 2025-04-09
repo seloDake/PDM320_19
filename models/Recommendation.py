@@ -35,7 +35,7 @@ def amongstFollowers(user_id):
             print("❌ No Videogames found among followers.")
             return
 
-        print("\n🎥 Most Played VideoGa,es Among Followers:")
+        print("\n🎥 Most Played VideoGames Among Followers:")
         for row in result_set:
             print(f"   🎬 {row[0]}")
 
