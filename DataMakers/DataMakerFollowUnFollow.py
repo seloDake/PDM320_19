@@ -5,7 +5,7 @@
 
 # number of rows in a relation table - our project requirements said at least
 # 5000 so we'd have enough for data analysis
-row_count = 6000
+row_count = 10000
 
 # maximum number of connection retries - this number is arbitrarily chosen
 MAX_RETRIES = 4
@@ -84,8 +84,8 @@ def main():
     with open('follows') as file:
         for line in file:
             print(line)
-            print(tuple(line.strip().split("\t")))
-            follow_lst.append(tuple(line.strip().split("\t")))
+            print(tuple(line.strip().split(",")))
+            follow_lst.append(tuple(line.strip().split(",")))
 
     insert_follow_data(follow_lst, MAX_RETRIES)
 
