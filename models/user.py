@@ -1,5 +1,6 @@
 import datetime
 import re
+from aem import Query
 import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
@@ -267,6 +268,7 @@ class User:
             print("5: Follow and unfollow a user")
             print("6: Search for a video game: ")
             print("7: Manage Platforms")
+            print("8: Recommend Games")
             print("9: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
@@ -289,6 +291,8 @@ class User:
                 printVideoGamesMenu(cls.user_id)
             elif choice == "7":
                 cls.manage_platforms()
+            elif choice == "8":
+                cls.recommend_games()
             elif choice == "9":
                 cls.logout()
                 break
@@ -435,6 +439,76 @@ class User:
             else:
                 for row in followers:
                     print(f"– {row[0]}")
+
+    @classmethod
+    def recommend_games(cls):
+        """Recommends games based on user's play history and similar users' behavior."""
+        with cls.conn.cursor() as cursor:
+            print("\n🔍 Generating recommendations just for you...")
+
+            # Step 1: Get top genres the user plays
+            cursor.execute("""
+                SELECT gig.genreid
+                FROM plays p
+                JOIN videogame vg ON p.videogameid = vg.videogameid
+                JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
+                WHERE p.username = %s
+                GROUP BY gig.genreid
+                ORDER BY COUNT(*) DESC
+                LIMIT 2;
+            """, (cls.user_id,))
+            top_genres = [row[0] for row in cursor.fetchall()]
+
+            # Step 2: Get platforms the user owns
+            cursor.execute("""
+                SELECT platformid
+                FROM owns
+                WHERE username = %s
+            """, (cls.user_id,))
+            platforms = [row[0] for row in cursor.fetchall()]
+
+            # If there's not enough data, abort
+            if not top_genres or not platforms:
+                print("⚠️ Not enough data to generate recommendations. Try playing or rating more games first.")
+                return
+
+            # Step 3: Get game recommendations
+            cursor.execute("""
+                SELECT DISTINCT vg.title, gig.genre, p2.name
+                FROM videogame vg
+                JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
+                JOIN hosts h ON vg.videogameid = h.videogameid
+                JOIN platform p2 ON h.platformid = p2.platformid
+                JOIN plays p ON vg.videogameid = p.videogameid
+                WHERE gig.genreid = ANY(%s)
+                    AND h.platformid = ANY(%s)
+                    AND p.username != %s
+                    AND vg.videogameid NOT IN (
+                        SELECT videogameid FROM plays WHERE username = %s
+                    )
+                LIMIT 10;
+            """, (top_genres, platforms, cls.user_id, cls.user_id))
+            results = cursor.fetchall()
+
+            print("\n🎮 Recommended Games for You:")
+            if not results:
+                print("🕹 No social matches found. Recommending top games overall...\n")
+
+                # Fallback: General games list
+                cursor.execute("""
+                    SELECT vg.title, gig.genre, p2.name
+                    FROM videogame vg
+                    JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
+                    JOIN hosts h ON vg.videogameid = h.videogameid
+                    JOIN platform p2 ON h.platformid = p2.platformid
+                    LIMIT 5;
+                """)
+                fallback = cursor.fetchall()
+                for title, genre, platform in fallback:
+                    print(f"– {title} | Genre: {genre} | Platform: {platform}")
+            else:
+                for title, genre, platform in results:
+                    print(f"– {title} | Genre: {genre} | Platform: {platform}")
 
 
 # Function to reconnect to the database
