@@ -46,7 +46,7 @@ def amongstFollowers(user_id):
         if conn:
             conn.close()
 
-amongstFollowers("dawn17");
+#amongstFollowers("dawn17");
 
 def top_releases_of_this_month(user_id):
     conn = get_db_connection()
@@ -94,4 +94,44 @@ def top_releases_of_this_month(user_id):
     finally:
         if conn:
             conn.close()
-top_releases_of_this_month("margaretdonovan");
+#top_releases_of_this_month("margaretdonovan");
+
+#def top_20(user_id):
+    #...
+def top_20_popular_last_90_days(user_id):
+    """Displays the top 20 most popular video games played in the last 90 days (rolling window)."""
+    conn = get_db_connection()
+    if conn is None:
+        print("Failed to connect to the database.")
+        return
+
+    try:
+        query = """
+            SELECT v.title, COUNT(*) AS play_count
+            FROM plays AS p
+            JOIN videogame AS v ON p.videogameid = v.videogameid
+            WHERE p.session_start >= CURRENT_DATE - INTERVAL '90 days'
+            GROUP BY v.title
+            ORDER BY play_count DESC
+            LIMIT 20;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            result_set = cursor.fetchall()
+
+        if not result_set:
+            print("❌ No popular games found in the last 90 days.")
+            return
+
+        print("\n🔥 Top 20 Most Popular Games (Last 90 Days):")
+        for idx, (title, play_count) in enumerate(result_set, start=1):
+            print(f"{idx}. {title} — {play_count} plays")
+
+    except psycopg2.DatabaseError as e:
+        print(f"Database error: {e}")
+        conn.rollback()
+    finally:
+        if conn:
+            conn.close()
+#top_20_popular_last_90_days("dawn17")
