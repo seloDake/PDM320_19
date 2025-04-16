@@ -35,7 +35,7 @@ def amongstFollowers(user_id):
             print("❌ No Videogames found among followers.")
             return
 
-        print("\n🎥 Most Played VideoGa,es Among Followers:")
+        print("\n🎥 Most Played VideoGames Among Followers:")
         for row in result_set:
             print(f"   🎬 {row[0]}")
 
@@ -45,11 +45,7 @@ def amongstFollowers(user_id):
     finally:
         if conn:
             conn.close()
-# a lot of them will say no u=common games due to how the dataset is computed, hwowever these ones have some but not up to 20
-#ocarr
-#wcameron
-#piercetravis
-#margaretdonovan
+
 amongstFollowers("dawn17");
 
 def top_releases_of_this_month(user_id):
