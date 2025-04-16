@@ -100,6 +100,33 @@ def videogame_search_menu():
             break
         else:
             print("❌❌Invalid Input try again")
+def sorting_options():
+    sorting_options = {
+            "1": "v.title ASC, h.release_date ASC",   # Default (name, release date)
+            "2": "v.title DESC, h.release_date DESC", # Name (descending)
+            "3": "h.price ASC",
+            "4": "h.price DESC", # Price (descending)
+            "5": "g.genrename ASC", # Genre (ascending)
+            "6": "g.genrename DESC", # Genre (descending)
+            "7": "h.release_date ASC", # Release year (ascending)
+            "8": "h.release_date DESC" # Release year (descending)
+        }
+
+    print("\n📌 Sorting Options:")
+    print("   1️⃣. Name & Release Date (Ascending) [Default] 🔼")
+    print("   2️⃣. Name & Release Date (Descending) 🔽")
+    print("   3️⃣. Price (Ascending) 💰🔼")
+    print("   4️⃣. Price (Descending) 💰🔽")
+    print("   5️⃣. Genre (Ascending) 🏷️🔼")
+    print("   6️⃣. Genre (Descending) 🏷️🔽")
+    print("   7️⃣. Release Year (Ascending) 📅🔼")
+    print("   8️⃣. Release Year (Descending) 📅🔽")
+    print("   9.Change the search order")
+
+
+    sort_choice = input("Choose a sorting option (1-8): ").strip()
+    sort_query = sorting_options.get(sort_choice, "v.title ASC, h.release_date ASC")
+
 
 def search_video_games_by_name():
     conn = get_db_connection()
@@ -129,11 +156,13 @@ def search_video_games_by_name():
         print("   1️⃣. Name & Release Date (Ascending) [Default] 🔼")
         print("   2️⃣. Name & Release Date (Descending) 🔽")
         print("   3️⃣. Price (Ascending) 💰🔼")
-        print("   4️⃣. Price (Descending) 💰🔽")
+        print("   4️⃣. Price (fDescending) 💰🔽")
         print("   5️⃣. Genre (Ascending) 🏷️🔼")
         print("   6️⃣. Genre (Descending) 🏷️🔽")
         print("   7️⃣. Release Year (Ascending) 📅🔼")
         print("   8️⃣. Release Year (Descending) 📅🔽")
+        print("   9.Change the search order")
+
 
         sort_choice = input("Choose a sorting option (1-8): ").strip()
         sort_query = sorting_options.get(sort_choice, "v.title ASC, h.release_date ASC")  # Default sorting

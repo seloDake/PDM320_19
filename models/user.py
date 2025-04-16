@@ -267,7 +267,9 @@ class User:
             print("5: Follow and unfollow a user")
             print("6: Search for a video game: ")
             print("7: Manage Platforms")
-            print("9: Logout")
+            print("8: View Top releases of the month")
+            print("9: Most Played Video Games amongst followers")
+            print("10: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
                 print("Accessing collections...")
@@ -289,7 +291,13 @@ class User:
                 printVideoGamesMenu(cls.user_id)
             elif choice == "7":
                 cls.manage_platforms()
+            elif choice == "8":
+                from Recommendation import top_releases_of_this_month
+                top_releases_of_this_month(cls.user_id)
             elif choice == "9":
+                from Recommendation import  amongstFollowers
+                amongstFollowers(cls.user_id)
+            elif choice == "10":
                 cls.logout()
                 break
             else:
