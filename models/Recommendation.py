@@ -50,7 +50,7 @@ def amongstFollowers(user_id):
 #wcameron
 #piercetravis
 #margaretdonovan
-amongstFollowers("margaretdonovan");
+amongstFollowers("dawn17");
 
 def top_releases_of_this_month(user_id):
     conn = get_db_connection()
