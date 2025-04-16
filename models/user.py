@@ -446,7 +446,7 @@ class User:
         with cls.conn.cursor() as cursor:
             print("\n🔍 Generating recommendations just for you...")
 
-            # Step 1: Get top genres the user plays
+            # Step 1: Get top genres
             cursor.execute("""
                 SELECT gig.genreid
                 FROM plays p
@@ -458,6 +458,7 @@ class User:
                 LIMIT 2;
             """, (cls.user_id,))
             top_genres = [row[0] for row in cursor.fetchall()]
+            print(f"📚 Top genres: {top_genres}")
 
             # Step 2: Get platforms the user owns
             cursor.execute("""
@@ -466,14 +467,14 @@ class User:
                 WHERE username = %s
             """, (cls.user_id,))
             platforms = [row[0] for row in cursor.fetchall()]
+            print(f"🕹️ Platforms: {platforms}")
 
-            # If there's not enough data, abort
             if not top_genres or not platforms:
                 print("⚠️ Not enough data to generate recommendations. Try playing or rating more games first.")
                 return
 
-            # Step 3: Get game recommendations
-            cursor.execute("""
+            # Step 3: Recommend based on genre/platform/play history
+            query = """
                 SELECT DISTINCT vg.title, gig.genre, p2.name
                 FROM videogame vg
                 JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
@@ -485,16 +486,16 @@ class User:
                     AND p.username != %s
                     AND vg.videogameid NOT IN (
                         SELECT videogameid FROM plays WHERE username = %s
-                    )
+                )
                 LIMIT 10;
-            """, (top_genres, platforms, cls.user_id, cls.user_id))
+            """
+            cursor.execute(query, (top_genres, platforms, cls.user_id, cls.user_id))
             results = cursor.fetchall()
 
             print("\n🎮 Recommended Games for You:")
             if not results:
                 print("🕹 No social matches found. Recommending top games overall...\n")
 
-                # Fallback: General games list
                 cursor.execute("""
                     SELECT vg.title, gig.genre, p2.name
                     FROM videogame vg
@@ -508,7 +509,7 @@ class User:
                     print(f"– {title} | Genre: {genre} | Platform: {platform}")
             else:
                 for title, genre, platform in results:
-                    print(f"– {title} | Genre: {genre} | Platform: {platform}")
+                    print(f"✅ {title} | Genre: {genre} | Platform: {platform}")
 
 
 # Function to reconnect to the database
