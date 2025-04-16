@@ -17,6 +17,7 @@ def printVideoGamesMenu(username):
         print("1: Play a video game")
         print("2: Search for a video game")
         print("3: Play a random video game")
+        print("4: View your top videogames")
         print("4: Return to the main menu")
 
         userinput = input("Enter the number that corresponds to your command: ").strip()
@@ -29,6 +30,9 @@ def printVideoGamesMenu(username):
         elif userinput == "3":
             play_random_game(username,conn)
         elif userinput == "4":
+            top_10_user_games(username)
+            break
+        elif userinput == "5":
             print("Returning to the main menu...")
             break
         else:
@@ -734,6 +738,92 @@ def play_random_game(username, conn):
         elif userinput == "no":
             print("Thank you for playing!")
             printVideoGamesMenu(username)
+
+
+def top_10_user_games(username):
+    conn = get_db_connection()
+    if conn is None:
+        print("❌ Failed to connect to the database.")
+        return
+
+    print("\n📊 How would you like to rank your top 10 games?")
+    print("1️⃣: By Highest Rating ⭐")
+    print("2️⃣: By Most Playtime ⏱️")
+    print("3️⃣: Combination of Rating & Playtime 🥇")
+
+    choice = input("Choose a ranking method (1-3): ").strip()
+
+    if choice not in {"1", "2", "3"}:
+        print("❌ Invalid choice.")
+        return
+
+    try:
+        with conn.cursor() as cursor:
+            if choice == "1":
+                # Highest rated games (with fallback if unrated)
+                query = """
+                    SELECT v.title, r.rating
+                    FROM rates r
+                    JOIN videogame v ON r.videogameid = v.videogameid
+                    WHERE r.username = %s
+                    ORDER BY r.rating DESC
+                    LIMIT 10;
+                """
+                cursor.execute(query, (username,))
+
+            elif choice == "2":
+                # Most played games
+                query = """
+                    SELECT v.title,
+                           SUM(EXTRACT(EPOCH FROM (p.session_end - p.session_start)) / 60) AS total_minutes
+                    FROM plays p
+                    JOIN videogame v ON p.videogameid = v.videogameid
+                    WHERE p.username = %s
+                    GROUP BY v.title
+                    ORDER BY total_minutes DESC
+                    LIMIT 10;
+                """
+                cursor.execute(query, (username,))
+
+            elif choice == "3":
+                # Combination metric: rating × log(playtime + 1)
+                query = """
+                    SELECT v.title,
+                           r.rating,
+                           SUM(EXTRACT(EPOCH FROM (p.session_end - p.session_start)) / 60) AS total_minutes,
+                           ROUND(r.rating * LOG(10, SUM(EXTRACT(EPOCH FROM (p.session_end - p.session_start)) / 60 + 1)), 2) AS score
+                    FROM plays p
+                    JOIN rates r ON p.videogameid = r.videogameid AND p.username = r.username
+                    JOIN videogame v ON p.videogameid = v.videogameid
+                    WHERE p.username = %s
+                    GROUP BY v.title, r.rating
+                    ORDER BY score DESC
+                    LIMIT 10;
+                """
+                cursor.execute(query, (username,))
+
+            results = cursor.fetchall()
+            if not results:
+                print("⚠️ No data found.")
+                return
+
+            print("\n🎮 Your Top 10 Games:\n")
+            if choice == "1":
+                for i, (title, rating) in enumerate(results, start=1):
+                    print(f"{i}. {title} — ⭐ {rating}/5")
+            elif choice == "2":
+                for i, (title, playtime) in enumerate(results, start=1):
+                    print(f"{i}. {title} — ⏱️ {playtime:.2f} minutes")
+            else:
+                for i, (title, rating, playtime, score) in enumerate(results, start=1):
+                    print(f"{i}. {title} — ⭐ {rating}/5 | ⏱️ {playtime:.2f} min | 🥇 Score: {score}")
+
+    except psycopg2.DatabaseError as e:
+        print(f"❌ Database error: {e}")
+        conn.rollback()
+    finally:
+        if conn:
+            conn.close()
 
 # Function to reconnect to the database
 def reconnect_db():
