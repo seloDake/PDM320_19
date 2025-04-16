@@ -271,6 +271,10 @@ class User:
             print("9: Most Played Video Games amongst followers")
             print("10: View Recommendation system")
             print("11: Logout")
+            print("8: View Top 20 Games")
+            print("9: View Top releases of the month")
+            print("10: Most Played Video Games amongst followers")
+            print("11: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
                 print("Accessing collections...")
@@ -294,9 +298,12 @@ class User:
                 cls.manage_platforms()
 
             elif choice == "8":
+                from Recommendation import top_20_popular_last_90_days
+                top_20_popular_last_90_days(cls.user_id)
+            elif choice == "9":
                 from Recommendation import top_releases_of_this_month
                 top_releases_of_this_month(cls.user_id)
-            elif choice == "9":
+            elif choice == "10":
                 from Recommendation import  amongstFollowers
                 amongstFollowers(cls.user_id)
             elif choice == "10":

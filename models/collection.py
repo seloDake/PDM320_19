@@ -2,6 +2,7 @@ from db import get_db_connection # Ensure db.py is in the same directory
 import user
 import psycopg2
 # AUTHOR : KIFEKACHUKWU NWOSU
+# AUTHOR : Selorm Dake
 conn = get_db_connection()
 
 
@@ -38,6 +39,36 @@ def printCollectionsMenu(user_id):
             break
         else:
             print("Invalid input. Try again.")
+
+
+def totalplaytimehelper(user_id, conn):
+    """Calculates the total play  time for a game in a collection"""
+    with conn.cursor() as cursor:
+        # Get all video game IDs and their names from the user's collection
+        cursor.execute("""
+            SELECT vg.videogameid, vg.title
+            FROM contains uc
+            JOIN videogame vg ON uc.videogameid = vg.videogameid
+            WHERE uc.username = %s
+        """, (user_id,))
+        games = cursor.fetchall()
+
+        if not games:
+            print("You have no games in your collection.")
+            return
+
+        print("🎮 Game & Playtime:\n")
+
+        # Iterate through each game and calculate total playtime
+        for game_id, game_title in games:
+            cursor.execute("""
+                SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (gps.session_end - gps.session_start)) / 60), 0)
+                FROM plays gps
+                WHERE gps.videogameid = %s AND gps.username = %s
+            """, (game_id, user_id))
+
+            total_playtime = cursor.fetchone()[0]
+            print(f"{game_title}: {total_playtime:.2f} minutes")
 
 
 def view_collections(user_id):
@@ -82,10 +113,10 @@ def view_collections(user_id):
                 games = cursor.fetchall()
 
                 if games:
-                    for game in games:
-                        print(f"{game[0]}")
+                    totalplaytimehelper(user_id, conn)
                 else:
                     print("No games in this collection.")
+
 
     except psycopg2.DatabaseError as e:
         print(f"Database error: {e}")
