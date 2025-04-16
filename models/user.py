@@ -1,6 +1,5 @@
 import datetime
 import re
-from aem import Query
 import psycopg2
 import random
 from db import get_db_connection # Ensure db.py is in the same directory
@@ -9,7 +8,7 @@ from db import get_db_connection # Ensure db.py is in the same directory
 conn = get_db_connection()
 
 class User:
-    # user_id = -1  # Static user ID
+    # user_id = "robert45"
     login_checker = False
     conn = None
     session = None
@@ -268,8 +267,8 @@ class User:
             print("5: Follow and unfollow a user")
             print("6: Search for a video game: ")
             print("7: Manage Platforms")
-            print("8: Recommend Games")
-            print("9: Logout")
+            # print("8: Recommend Games")
+            print("10: Logout")
             choice = input("Enter your choice: ")
             if choice == "2":
                 print("Accessing collections...")
@@ -291,9 +290,9 @@ class User:
                 printVideoGamesMenu(cls.user_id)
             elif choice == "7":
                 cls.manage_platforms()
-            elif choice == "8":
-                cls.recommend_games()
-            elif choice == "9":
+            # elif choice == "8":
+            #     cls.recommend_games()
+            elif choice == "10":
                 cls.logout()
                 break
             else:
@@ -442,75 +441,88 @@ class User:
 
     @classmethod
     def recommend_games(cls):
-        """Recommends games based on user's play history and similar users' behavior."""
         with cls.conn.cursor() as cursor:
-            print("\n🔍 Generating recommendations just for you...")
+            print("\n📦 Scanning your collections for recommendations...\n")
 
-            # Step 1: Get top genres
+            # 1. Get user's collections and games
             cursor.execute("""
-                SELECT gig.genreid
-                FROM plays p
-                JOIN videogame vg ON p.videogameid = vg.videogameid
-                JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
-                WHERE p.username = %s
-                GROUP BY gig.genreid
-                ORDER BY COUNT(*) DESC
-                LIMIT 2;
+                SELECT c.collectionid, c.collectionname, COUNT(co.videogameid) 
+                FROM collections c
+                LEFT JOIN contains co ON c.collectionid = co.collectionid
+                WHERE c.username = %s
+                GROUP BY c.collectionid, c.collectionname
+                ORDER BY c.collectionname;
             """, (cls.user_id,))
-            top_genres = [row[0] for row in cursor.fetchall()]
-            print(f"📚 Top genres: {top_genres}")
 
-            # Step 2: Get platforms the user owns
-            cursor.execute("""
-                SELECT platformid
-                FROM owns
-                WHERE username = %s
-            """, (cls.user_id,))
-            platforms = [row[0] for row in cursor.fetchall()]
-            print(f"🕹️ Platforms: {platforms}")
+            collections = cursor.fetchall()
+            allgames = []
 
-            if not top_genres or not platforms:
-                print("⚠️ Not enough data to generate recommendations. Try playing or rating more games first.")
+            for collection_id, collection_name, game_count in collections:
+                cursor.execute("""
+                    SELECT v.videogameid, v.title
+                    FROM contains co
+                    JOIN videogame v ON co.videogameid = v.videogameid
+                    WHERE co.collectionid = %s
+                    ORDER BY v.title;
+                """, (collection_id,))
+
+                games = cursor.fetchall()
+                allgames.extend(games)
+
+                if games:
+                    print(f"\n📂 {collection_name} ({game_count} games):")
+                    for game in games:
+                        print(f"🎮 {game[1]}")
+                else:
+                    print(f"\n📂 {collection_name} has no games.")
+
+            if not allgames:
+                print("😕 You have no games in your collection to base recommendations on.")
                 return
 
-            # Step 3: Recommend based on genre/platform/play history
-            query = """
-                SELECT DISTINCT vg.title, gig.genre, p2.name
+            # 2. Extract IDs
+            user_game_ids = [game[0] for game in allgames]
+
+            # 3. Get genres and platforms for those games
+            cursor.execute("""
+                SELECT DISTINCT gig.genreid
+                FROM game_is_genre gig
+                WHERE gig.videogameid = ANY(%s)
+            """, (user_game_ids,))
+            genres = [row[0] for row in cursor.fetchall()]
+
+            cursor.execute("""
+                SELECT DISTINCT h.platformid
+                FROM hosts h
+                WHERE h.videogameid = ANY(%s)
+            """, (user_game_ids,))
+            platforms = [row[0] for row in cursor.fetchall()]
+
+            print("\n🧠 Recommending based on your favorite genres and platforms...")
+
+            # 4. Recommend games not already owned
+            cursor.execute("""
+                SELECT DISTINCT vg.title
                 FROM videogame vg
-                JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
-                JOIN hosts h ON vg.videogameid = h.videogameid
-                JOIN platform p2 ON h.platformid = p2.platformid
-                JOIN plays p ON vg.videogameid = p.videogameid
-                WHERE gig.genreid = ANY(%s)
-                    AND h.platformid = ANY(%s)
-                    AND p.username != %s
-                    AND vg.videogameid NOT IN (
-                        SELECT videogameid FROM plays WHERE username = %s
+                LEFT JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
+                LEFT JOIN hosts h ON vg.videogameid = h.videogameid
+                WHERE (
+                    gig.genreid = ANY(%s) OR
+                    h.platformid = ANY(%s)
                 )
-                LIMIT 10;
-            """
-            cursor.execute(query, (top_genres, platforms, cls.user_id, cls.user_id))
-            results = cursor.fetchall()
+                AND vg.videogameid <> ALL(%s)
+                LIMIT 5;
+            """, (genres, platforms, user_game_ids))
 
-            print("\n🎮 Recommended Games for You:")
-            if not results:
-                print("🕹 No social matches found. Recommending top games overall...\n")
+            recommendations = cursor.fetchall()
 
-                cursor.execute("""
-                    SELECT vg.title, gig.genre, p2.name
-                    FROM videogame vg
-                    JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
-                    JOIN hosts h ON vg.videogameid = h.videogameid
-                    JOIN platform p2 ON h.platformid = p2.platformid
-                    LIMIT 5;
-                """)
-                fallback = cursor.fetchall()
-                for title, genre, platform in fallback:
-                    print(f"– {title} | Genre: {genre} | Platform: {platform}")
+            # 5. Display
+            if recommendations:
+                print("\n✨ We think you'll like these games:")
+                for game in recommendations:
+                    print(f"🌟 {game[0]}")
             else:
-                for title, genre, platform in results:
-                    print(f"✅ {title} | Genre: {genre} | Platform: {platform}")
-
+                print("😓 No similar games found for recommendation right now.")
 
 # Function to reconnect to the database
 def reconnect_db():
