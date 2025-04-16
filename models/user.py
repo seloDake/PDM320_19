@@ -2,10 +2,20 @@ import datetime
 import re
 import psycopg2
 import random
+import bcrypt
 from db import get_db_connection # Ensure db.py is in the same directory
 
 # AUTHOR : Christabel Osei
+# AUTHOR : Selorm Dake
 conn = get_db_connection()
+
+def hash_password(plain_text_password):
+    """Hashes the password using bcrypt."""
+    return bcrypt.hashpw(plain_text_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def check_password(plain_text_password, hashed_password):
+    """Checks the password against the hashed version."""
+    return bcrypt.checkpw(plain_text_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 class User:
     # user_id = -1  # Static user ID
@@ -41,7 +51,7 @@ class User:
             cursor.execute('SELECT "username" FROM "users" WHERE username = %s AND password = %s', (username, password))
             result = cursor.fetchone()
 
-            if result:
+            if result and check_password(password, result[0]):
                 cls.user_id = result[0]
                 cls.login_checker = True
                 current_time = datetime.datetime.now()
@@ -126,6 +136,7 @@ class User:
                 continue
             break
 
+        hashed_password = hash_password(password)
         current_time = datetime.datetime.now()
         selected_platform_id = cls.assign_platform()
 
@@ -137,7 +148,7 @@ class User:
                 cursor.execute("""
                     INSERT INTO users (username, email,first_name,last_name,password,creation_date)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """, (username, email, first_name,last_name,password,current_time))
+                """, (username, email, first_name,last_name,hashed_password,current_time))
                 cursor.execute("""INSERT INTO login_record (username, login_date)VALUES (%s, %s)""", (username, current_time))
                 cursor.execute("""INSERT INTO owns (username, platformid)VALUES (%s, %s)""", (username, selected_platform_id))
                 cls.conn.commit()
