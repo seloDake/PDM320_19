@@ -129,7 +129,7 @@ def search_video_games_by_name():
         print("   1️⃣. Name & Release Date (Ascending) [Default] 🔼")
         print("   2️⃣. Name & Release Date (Descending) 🔽")
         print("   3️⃣. Price (Ascending) 💰🔼")
-        print("   4️⃣. Price (Descending) 💰🔽")
+        print("   4️⃣. Price (fDescending) 💰🔽")
         print("   5️⃣. Genre (Ascending) 🏷️🔼")
         print("   6️⃣. Genre (Descending) 🏷️🔽")
         print("   7️⃣. Release Year (Ascending) 📅🔼")
