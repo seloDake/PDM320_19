@@ -267,6 +267,7 @@ class User:
             print("5: Follow and unfollow a user")
             print("6: Search for a video game: ")
             print("7: Manage Platforms")
+            print("10: Logout")
             print("8: View Top releases of the month")
             print("9: Most Played Video Games amongst followers")
             print("10: Logout")
@@ -291,13 +292,15 @@ class User:
                 printVideoGamesMenu(cls.user_id)
             elif choice == "7":
                 cls.manage_platforms()
+            # elif choice == "8":
+            #     cls.recommend_games()
             elif choice == "8":
                 from Recommendation import top_releases_of_this_month
                 top_releases_of_this_month(cls.user_id)
             elif choice == "9":
                 from Recommendation import  amongstFollowers
                 amongstFollowers(cls.user_id)
-            elif choice == "10":
+            elif choice == "11":
                 cls.logout()
                 break
             else:
@@ -307,12 +310,17 @@ class User:
     def follow_unfollow_menu(cls):
         """Displays the Follow/Unfollow Menu"""
         while True:
+            following_count = cls.get_following_count()
+            follower_count = cls.get_follower_count()
             print("\nWelcome to the Followers Menu!")
+            print(f"📌 You are currently following {following_count} users.")
+            print(f"📌 You currently have {follower_count} followers.")
             print("Here are the available commands:")
             print("0: Reprint the followers menu")
             print("1: Follow A User")
             print("2: Unfollow A User")
-            print("3: Return to the main menu\n")
+            print("3: View Followers & Following")
+            print("4: Return to the main menu\n")
             command = input("Enter the number that corresponds to the command you wish to execute: ")
             if command == "0":
                 continue
@@ -321,6 +329,8 @@ class User:
             elif command == "2":
                 cls.unfollow_user()
             elif command == "3":
+                cls.view_follow_lists()
+            elif command == "4":
                 break
             else:
                 print("⚠️ Please pick a valid number")
@@ -337,61 +347,189 @@ class User:
             if choice == "1":
                 first_name = input("Enter the first name of the person you would like to follow: ").strip()
                 last_name = input("Enter the last name of the person you would like to follow: ").strip()
-                cursor.execute('SELECT "username" FROM "users" WHERE first_name = %s AND last_name = %s', (first_name, last_name))
-                result = cursor.fetchone()
+                cursor.execute("""
+                    SELECT username FROM users 
+                    WHERE first_name = %s AND last_name = %s
+                """, (first_name, last_name))
             elif choice == "2":
                 email = input("Enter the email address of the user you would like to follow: ").strip()
-                cursor.execute('SELECT "username" FROM "users" WHERE email = %s', (email,))
-                result = cursor.fetchone()
+                cursor.execute("""
+                    SELECT username FROM users 
+                    WHERE email = %s
+                """, (email,))
             else:
-                print(" Invalid option.")
+                print("⚠️ Invalid option.")
                 return
+            result = cursor.fetchone()
 
             if not result:
-                print(" User not found.")
+                print("❌ User not found.")
                 return
 
             follow_id = result[0]
-            print("Username:", follow_id)
-            print("Username:", cls.user_id)
-            cursor.execute("INSERT INTO follow_unfollow (followerusername, followeeusername) VALUES (%s, %s)",
-                           (cls.user_id, follow_id))
-            cls.conn.commit()
-            print(" Successfully followed the user!")
+
+            if follow_id == cls.user_id:
+                print("⚠️ You cannot follow yourself.")
+                return
+
+            # Check if already following
+            cursor.execute("""
+                SELECT 1 FROM follow_unfollow 
+                WHERE followerusername = %s AND followeeusername = %s
+            """, (cls.user_id, follow_id))
+
+            if cursor.fetchone():
+                print(f"⚠️ You already follow {follow_id}.")
+                return
+
+            # Insert into table
+            try:
+                cursor.execute("""
+                    INSERT INTO follow_unfollow (followerusername, followeeusername) 
+                    VALUES (%s, %s)
+                """, (cls.user_id, follow_id))
+                cls.conn.commit()
+                print(f"✅ You are now following {follow_id}!")
+            except psycopg2.Error as e:
+                print(f"❌ Database error: {e}")
+                cls.conn.rollback()
+
 
     @classmethod
-    def unfollow_user(cls):
-        """Allows a user to unfollow another user by Name or Email."""
-        print("You have selected to unfollow a user.")
-        print("1: Unfollow a user by Name")
-        print("2: Unfollow a user by Email")
-        choice = input("Enter your choice: ")
-
+    def get_following_count(cls):
+        """Returns the number of users this user is following."""
         with cls.conn.cursor() as cursor:
-            if choice == "1":
-                first_name = input("Enter the first name of the person you would like to unfollow: ").strip()
-                last_name = input("Enter the last name of the person you would like to unfollow: ").strip()
-                cursor.execute('SELECT "username" FROM "users" WHERE first_name = %s AND last_name = %s', (first_name, last_name))
-                result = cursor.fetchone()
-            elif choice == "2":
-                email = input("Enter the email address of the user you would like to unfollow: ").strip()
-                cursor.execute('SELECT "username" FROM "users" WHERE email = %s', (email,))
-                result = cursor.fetchone()
+            cursor.execute("""
+                SELECT COUNT(*) FROM follow_unfollow
+                WHERE followerusername = %s
+            """, (cls.user_id,))
+            result = cursor.fetchone()
+            return result[0] if result else 0
+
+    @classmethod
+    def get_follower_count(cls):
+        """Returns the number of users who follow this user."""
+        with cls.conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT COUNT(*) FROM follow_unfollow
+                WHERE followeeusername = %s
+            """, (cls.user_id,))
+            result = cursor.fetchone()
+            return result[0] if result else 0
+
+    @classmethod
+    def view_follow_lists(cls):
+        """Displays the list of users the current user is following and their followers."""
+        with cls.conn.cursor() as cursor:
+            print("\n📋 People You Are Following:")
+            cursor.execute("""
+                SELECT followeeusername FROM follow_unfollow
+                WHERE followerusername = %s
+            """, (cls.user_id,))
+            following = cursor.fetchall()
+            if not following:
+                print("– You are not following anyone yet.")
             else:
-                print("Invalid option.")
+                for row in following:
+                    print(f"– {row[0]}")
+
+            print("\n📥 People Who Follow You:")
+            cursor.execute("""
+                SELECT followerusername FROM follow_unfollow
+                WHERE followeeusername = %s
+            """, (cls.user_id,))
+            followers = cursor.fetchall()
+            if not followers:
+                print("– You don’t have any followers yet.")
+            else:
+                for row in followers:
+                    print(f"– {row[0]}")
+
+    @classmethod
+    def recommend_games(cls):
+        with cls.conn.cursor() as cursor:
+            print("\n📦 Scanning your collections for recommendations...\n")
+
+            # 1. Get user's collections and games
+            cursor.execute("""
+                SELECT c.collectionid, c.collectionname, COUNT(co.videogameid) 
+                FROM collections c
+                LEFT JOIN contains co ON c.collectionid = co.collectionid
+                WHERE c.username = %s
+                GROUP BY c.collectionid, c.collectionname
+                ORDER BY c.collectionname;
+            """, (cls.user_id,))
+
+            collections = cursor.fetchall()
+            allgames = []
+
+            for collection_id, collection_name, game_count in collections:
+                cursor.execute("""
+                    SELECT v.videogameid, v.title
+                    FROM contains co
+                    JOIN videogame v ON co.videogameid = v.videogameid
+                    WHERE co.collectionid = %s
+                    ORDER BY v.title;
+                """, (collection_id,))
+
+                games = cursor.fetchall()
+                allgames.extend(games)
+
+                if games:
+                    print(f"\n📂 {collection_name} ({game_count} games):")
+                    for game in games:
+                        print(f"🎮 {game[1]}")
+                else:
+                    print(f"\n📂 {collection_name} has no games.")
+
+            if not allgames:
+                print("😕 You have no games in your collection to base recommendations on.")
                 return
 
-            if not result:
-                print(" User not found.")
-                return
+            # 2. Extract IDs
+            user_game_ids = [game[0] for game in allgames]
 
-            unfollow_id = result[0]
-            cursor.execute("DELETE FROM follow_unfollow WHERE followerusername = %s AND followeeusername = %s",
-                           (cls.user_id, unfollow_id))
-            cls.conn.commit()
-            print(" Successfully unfollowed the user!")
-    
-   
+            # 3. Get genres and platforms for those games
+            cursor.execute("""
+                SELECT DISTINCT gig.genreid
+                FROM game_is_genre gig
+                WHERE gig.videogameid = ANY(%s)
+            """, (user_game_ids,))
+            genres = [row[0] for row in cursor.fetchall()]
+
+            cursor.execute("""
+                SELECT DISTINCT h.platformid
+                FROM hosts h
+                WHERE h.videogameid = ANY(%s)
+            """, (user_game_ids,))
+            platforms = [row[0] for row in cursor.fetchall()]
+
+            print("\n🧠 Recommending based on your favorite genres and platforms...")
+
+            # 4. Recommend games not already owned
+            cursor.execute("""
+                SELECT DISTINCT vg.title
+                FROM videogame vg
+                LEFT JOIN game_is_genre gig ON vg.videogameid = gig.videogameid
+                LEFT JOIN hosts h ON vg.videogameid = h.videogameid
+                WHERE (
+                    gig.genreid = ANY(%s) OR
+                    h.platformid = ANY(%s)
+                )
+                AND vg.videogameid <> ALL(%s)
+                LIMIT 5;
+            """, (genres, platforms, user_game_ids))
+
+            recommendations = cursor.fetchall()
+
+            # 5. Display
+            if recommendations:
+                print("\n✨ We think you'll like these games:")
+                for game in recommendations:
+                    print(f"🌟 {game[0]}")
+            else:
+                print("😓 No similar games found for recommendation right now.")
+
 # Function to reconnect to the database
 def reconnect_db():
     print("Attempting to reconnect to the database...")

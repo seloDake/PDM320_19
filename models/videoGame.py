@@ -13,7 +13,6 @@ def printVideoGamesMenu(username):
     while True:
         print("\nWelcome to the VideoGames Menu!")
         print("Here are the available commands: ")
-        print("0: Reprint the collections menu")
         print("1: Play a video game")
         print("2: Search for a video game")
         print("3: Play a random video game")

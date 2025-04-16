@@ -20,7 +20,7 @@ def printCollectionsMenu(user_id):
 
         userinput = input("Enter the number that corresponds to your command: ").strip()
         if userinput == "0":
-            printCollectionsMenu()
+            printCollectionsMenu(user_id)
         elif userinput == "1":
             create_collection(user_id)
         elif userinput == "2":
