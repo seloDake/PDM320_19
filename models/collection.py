@@ -4,7 +4,6 @@ import psycopg2
 # AUTHOR : KIFEKACHUKWU NWOSU
 # AUTHOR : Selorm Dake
 conn = get_db_connection()
-# user_id = input("Enter your username")  # Example user ID THAT WILL NOT QORK
 
 
 def printCollectionsMenu(user_id):
@@ -92,11 +91,13 @@ def view_collections(user_id):
         """, (user_id,))
 
         collections = cursor.fetchall()
+        collections_num = len(collections)
 
         if not collections:
             print("No collections found.")
         else:
             print("Your Collections:")
+            print("Total items in collections: ",collections_num)
             for collection_id, collection_name, game_count in collections:
                 print(f"\n📂 {collection_name} ({game_count} games)")
                 # Fetch video games for this collection
@@ -125,14 +126,6 @@ def view_collections(user_id):
             conn.close()
 
 
-# def print_games_in_collection(collection):
-#     conn = get_db_connection()
-#     if conn is None:
-#         print("Failed to connect to the database.")
-#         return
-#     try:
-#         cursor = conn.cursor()
-#         cursor.execute("SELECT collectionname FROM collections WHERE username = %s", (collection,))
 
 
 # Function to create a collection
@@ -216,6 +209,7 @@ def delete_collection(user_id):
         if conn:
             conn.close()
 
+
 def addVideoGametoCollection(user_id):
     conn = get_db_connection()
     if conn is None:
@@ -260,7 +254,23 @@ def addVideoGametoCollection(user_id):
                 print("VideoGame not found in the database.")
                 continue
 
-        cursor.execute("INSERT INTO contains (collectionid, videogameid, username) VALUES (%s, %s, %s)", (collection_id, game_id, user_id))
+        # Check if the user owns a platform that supports this game
+        cursor.execute("""
+            SELECT DISTINCT p.platformid 
+            FROM hosts h 
+            JOIN platform p ON h.platformid = p.platformid 
+            WHERE h.videogameid = %s
+        """, (game_id,))
+        supported_platforms = {row[0] for row in cursor.fetchall()}
+
+        cursor.execute("SELECT platformid FROM owns WHERE username = %s", (user_id,))
+        owned_platforms = {row[0] for row in cursor.fetchall()}
+
+        if not supported_platforms.intersection(owned_platforms):
+            print("Warning: You are adding a game to your collection but do not own a supported platform for this game.")
+
+        cursor.execute("INSERT INTO contains (collectionid, videogameid, username) VALUES (%s, %s, %s)",
+                       (collection_id, game_id, user_id))
         conn.commit()
         print("Game added successfully!")
 
@@ -273,6 +283,7 @@ def addVideoGametoCollection(user_id):
             cursor.close()
         if conn:
             conn.close()
+
 
 def modifyCollectionName(user_id):
     conn = get_db_connection()

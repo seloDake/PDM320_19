@@ -8,7 +8,6 @@ import user
 # Author : Kiffy Nwosu
 # AUTHOR : Selorm Dake
 conn = get_db_connection()
-#username = "cweiss"  # Example user name THAT WILL NOT QORK
 
 def printVideoGamesMenu(username):
     while True:
@@ -68,7 +67,7 @@ def play_video_game(username, conn):
         print(f"You played {game_name} for {play_time} minutes. Would you like to rate it?\n")
         userinput = input("Enter yes or no: ").strip()
         if userinput == "yes":
-            rate_video_game()
+            rate_video_game(username, conn)
         elif userinput == "no":
             print("Thank you for playing!")
             printVideoGamesMenu(username)
@@ -648,7 +647,7 @@ def rate_video_game(username, conn):
         existing_rating = cursor.fetchone()
         if existing_rating:
             print(f"You have already rated this game with {existing_rating[0]} stars.")
-            printVideoGamesMenu()  
+            printVideoGamesMenu(username)  
         else:
             while True:
                 try:
@@ -714,7 +713,3 @@ def reconnect_db():
     if conn:
         print("Reconnected to the database successfully.")
 
-#play_video_game(username,conn)
-#play_random_game(username,conn)
-# rate_video_game(username,conn)
-# videogame_search_menu()
