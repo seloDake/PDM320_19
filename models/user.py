@@ -48,7 +48,11 @@ class User:
         password = input("Enter password: ").strip()
 
         with cls.conn.cursor() as cursor:
-            cursor.execute('SELECT "username" FROM "users" WHERE username = %s AND password = %s', (username, password))
+            #cursor.execute('SELECT "username" FROM "users" WHERE username = %s AND password = %s', (username, password))
+            #result = cursor.fetchone()
+
+            #if result and check_password(password, ):
+            cursor.execute('SELECT password FROM users WHERE username = %s', (username,))
             result = cursor.fetchone()
 
             if result and check_password(password, result[0]):
